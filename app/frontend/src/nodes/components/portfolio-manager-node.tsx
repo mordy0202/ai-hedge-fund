@@ -98,6 +98,7 @@ export function PortfolioManagerNode({
         iconColor={getStatusColor(status)}
         name={data.name || 'Portfolio Manager'}
         description={data.description}
+        hasRightHandle={false}
         status={status}
       >
         <CardContent className="p-0">
