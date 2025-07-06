@@ -3,10 +3,9 @@ import {
   Bot,
   Brain,
   Calculator,
-  FileJson,
-  FileText,
+  Lightbulb,
+  List,
   LucideIcon,
-  Monitor,
   Network,
   Play
 } from 'lucide-react';
@@ -33,17 +32,15 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
   
   return [
     {
-      name: "start nodes",
+      name: "Start Nodes",
       icon: Play,
       iconColor: "text-blue-400",
       items: [
-        // { name: "Chat Input", icon: MessageSquare },
-        { name: "Portfolio Manager", icon: Brain },
-        // { name: "File Input", icon: FileText }
+        { name: "Stock Tickers", icon: List },
       ]
     },
     {
-      name: "agents",
+      name: "Analysts",
       icon: Bot,
       iconColor: "text-red-400",
       items: agents.map((agent: Agent) => ({
@@ -52,7 +49,7 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
       }))
     },
     {
-      name: "swarms",
+      name: "Teams",
       icon: Network,
       iconColor: "text-yellow-400",
       items: [
@@ -61,12 +58,13 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
       ]
     },
     {
-      name: "outputs",
-      icon: Monitor,
+      name: "Decision Makers",
+      icon: Lightbulb,
       iconColor: "text-green-400",
       items: [
-        { name: "JSON Output", icon: FileJson },
-        { name: "Investment Report", icon: FileText },
+        { name: "Portfolio Manager", icon: Brain },
+        // { name: "JSON Output", icon: FileJson },
+        // { name: "Investment Report", icon: FileText },
       ]
     },
   ];

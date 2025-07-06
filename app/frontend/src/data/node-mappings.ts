@@ -47,6 +47,18 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       },
     }),
   },
+  "Stock Tickers": {
+    createNode: (position: { x: number, y: number }): AppNode => ({
+      id: `stock-tickers-node`,
+      type: "stock-tickers-node",
+      position,
+      data: {
+        name: "Stock Tickers",
+        description: "Start Node",
+        status: "Idle",
+      },
+    }),
+  },
 };
 
 /**

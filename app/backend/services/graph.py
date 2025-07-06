@@ -28,7 +28,7 @@ def create_graph(selected_agents: list[str]) -> StateGraph:
         graph.add_node(node_name, node_func)
         graph.add_edge("start_node", node_name)
 
-    # Always add risk and portfolio management (for now)
+    # TODO - do not always add risk and portfolio management (for now)
     graph.add_node("risk_management_agent", risk_management_agent)
     graph.add_node("portfolio_manager", portfolio_management_agent)
 
