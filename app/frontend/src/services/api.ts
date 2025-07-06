@@ -1,6 +1,7 @@
 import { NodeStatus, OutputNodeData, useNodeContext } from '@/contexts/node-context';
 import { Agent } from '@/data/agents';
 import { LanguageModel } from '@/data/models';
+import { extractBaseAgentKey } from '@/data/node-mappings';
 import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import { ModelProvider } from '@/services/types';
 
@@ -109,6 +110,9 @@ export const api = {
       params.tickers = (params.tickers as unknown as string).split(',').map(t => t.trim());
     }
 
+    // Pass the unique node IDs directly to the backend
+    const backendParams = params;
+
     // For SSE connections with FastAPI, we need to use POST
     // First, create the controller
     const controller = new AbortController();
@@ -120,7 +124,7 @@ export const api = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify(backendParams),
       signal,
     })
     .then(response => {
@@ -182,11 +186,16 @@ export const api = {
                         if (eventData.status === 'Done') {
                           nodeStatus = 'COMPLETE';
                         }
-                        // Use the agent name as the node ID
-                        const agentId = eventData.agent.replace('_agent', '');
+                        // Map the backend agent name to the unique node ID
+                        const baseAgentKey = eventData.agent.replace('_agent', '');
+                        
+                        // Find the unique node ID that corresponds to this base agent key
+                        const uniqueNodeId = params.selected_agents?.find(id => 
+                          extractBaseAgentKey(id) === baseAgentKey
+                        ) || baseAgentKey;
                                                 
                         // Use the enhanced API to update both status and additional data
-                        nodeContext.updateAgentNode(flowId, agentId, {
+                        nodeContext.updateAgentNode(flowId, uniqueNodeId, {
                           status: nodeStatus,
                           ticker: eventData.ticker,
                           message: eventData.status,

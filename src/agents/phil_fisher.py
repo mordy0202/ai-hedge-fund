@@ -22,7 +22,7 @@ class PhilFisherSignal(BaseModel):
     reasoning: str
 
 
-def phil_fisher_agent(state: AgentState):
+def phil_fisher_agent(state: AgentState, agent_id: str = "phil_fisher_agent"):
     """
     Analyzes stocks using Phil Fisher's investing principles:
       - Seek companies with long-term above-average growth potential
@@ -42,10 +42,10 @@ def phil_fisher_agent(state: AgentState):
     fisher_analysis = {}
 
     for ticker in tickers:
-        progress.update_status("phil_fisher_agent", ticker, "Fetching financial metrics")
+        progress.update_status(agent_id, ticker, "Fetching financial metrics")
         metrics = get_financial_metrics(ticker, end_date, period="annual", limit=5)
 
-        progress.update_status("phil_fisher_agent", ticker, "Gathering financial line items")
+        progress.update_status(agent_id, ticker, "Gathering financial line items")
         # Include relevant line items for Phil Fisher's approach:
         #   - Growth & Quality: revenue, net_income, earnings_per_share, R&D expense
         #   - Margins & Stability: operating_income, operating_margin, gross_margin
@@ -73,31 +73,31 @@ def phil_fisher_agent(state: AgentState):
             limit=5,
         )
 
-        progress.update_status("phil_fisher_agent", ticker, "Getting market cap")
+        progress.update_status(agent_id, ticker, "Getting market cap")
         market_cap = get_market_cap(ticker, end_date)
 
-        progress.update_status("phil_fisher_agent", ticker, "Fetching insider trades")
+        progress.update_status(agent_id, ticker, "Fetching insider trades")
         insider_trades = get_insider_trades(ticker, end_date, start_date=None, limit=50)
 
-        progress.update_status("phil_fisher_agent", ticker, "Fetching company news")
+        progress.update_status(agent_id, ticker, "Fetching company news")
         company_news = get_company_news(ticker, end_date, start_date=None, limit=50)
 
-        progress.update_status("phil_fisher_agent", ticker, "Analyzing growth & quality")
+        progress.update_status(agent_id, ticker, "Analyzing growth & quality")
         growth_quality = analyze_fisher_growth_quality(financial_line_items)
 
-        progress.update_status("phil_fisher_agent", ticker, "Analyzing margins & stability")
+        progress.update_status(agent_id, ticker, "Analyzing margins & stability")
         margins_stability = analyze_margins_stability(financial_line_items)
 
-        progress.update_status("phil_fisher_agent", ticker, "Analyzing management efficiency & leverage")
+        progress.update_status(agent_id, ticker, "Analyzing management efficiency & leverage")
         mgmt_efficiency = analyze_management_efficiency_leverage(financial_line_items)
 
-        progress.update_status("phil_fisher_agent", ticker, "Analyzing valuation (Fisher style)")
+        progress.update_status(agent_id, ticker, "Analyzing valuation (Fisher style)")
         fisher_valuation = analyze_fisher_valuation(financial_line_items, market_cap)
 
-        progress.update_status("phil_fisher_agent", ticker, "Analyzing insider activity")
+        progress.update_status(agent_id, ticker, "Analyzing insider activity")
         insider_activity = analyze_insider_activity(insider_trades)
 
-        progress.update_status("phil_fisher_agent", ticker, "Analyzing sentiment")
+        progress.update_status(agent_id, ticker, "Analyzing sentiment")
         sentiment_analysis = analyze_sentiment(company_news)
 
         # Combine partial scores with weights typical for Fisher:
@@ -138,11 +138,12 @@ def phil_fisher_agent(state: AgentState):
             "sentiment_analysis": sentiment_analysis,
         }
 
-        progress.update_status("phil_fisher_agent", ticker, "Generating Phil Fisher-style analysis")
+        progress.update_status(agent_id, ticker, "Generating Phil Fisher-style analysis")
         fisher_output = generate_fisher_output(
             ticker=ticker,
             analysis_data=analysis_data,
             state=state,
+            agent_id=agent_id,
         )
 
         fisher_analysis[ticker] = {
@@ -151,17 +152,17 @@ def phil_fisher_agent(state: AgentState):
             "reasoning": fisher_output.reasoning,
         }
 
-        progress.update_status("phil_fisher_agent", ticker, "Done", analysis=fisher_output.reasoning)
+        progress.update_status(agent_id, ticker, "Done", analysis=fisher_output.reasoning)
 
     # Wrap results in a single message
-    message = HumanMessage(content=json.dumps(fisher_analysis), name="phil_fisher_agent")
+    message = HumanMessage(content=json.dumps(fisher_analysis), name=agent_id)
 
     if state["metadata"].get("show_reasoning"):
         show_agent_reasoning(fisher_analysis, "Phil Fisher Agent")
 
-    state["data"]["analyst_signals"]["phil_fisher_agent"] = fisher_analysis
+    state["data"]["analyst_signals"][agent_id] = fisher_analysis
 
-    progress.update_status("phil_fisher_agent", None, "Done")
+    progress.update_status(agent_id, None, "Done")
     
     return {"messages": [message], "data": state["data"]}
 
@@ -530,6 +531,7 @@ def generate_fisher_output(
     ticker: str,
     analysis_data: dict[str, any],
     state: AgentState,
+    agent_id: str,
 ) -> PhilFisherSignal:
     """
     Generates a JSON signal in the style of Phil Fisher.
@@ -595,6 +597,6 @@ def generate_fisher_output(
         prompt=prompt,
         pydantic_model=PhilFisherSignal,
         state=state,
-        agent_name="phil_fisher_agent",
+        agent_name=agent_id,
         default_factory=create_default_signal,
     )

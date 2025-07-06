@@ -42,7 +42,7 @@ class MichaelBurrySignal(BaseModel):
 ###############################################################################
 
 
-def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine here)
+def michael_burry_agent(state: AgentState, agent_id: str = "michael_burry_agent"):
     """Analyse stocks using Michael Burry's deep‑value, contrarian framework."""
 
     data = state["data"]
@@ -59,10 +59,10 @@ def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine h
         # ------------------------------------------------------------------
         # Fetch raw data
         # ------------------------------------------------------------------
-        progress.update_status("michael_burry_agent", ticker, "Fetching financial metrics")
+        progress.update_status(agent_id, ticker, "Fetching financial metrics")
         metrics = get_financial_metrics(ticker, end_date, period="ttm", limit=5)
 
-        progress.update_status("michael_burry_agent", ticker, "Fetching line items")
+        progress.update_status(agent_id, ticker, "Fetching line items")
         line_items = search_line_items(
             ticker,
             [
@@ -78,28 +78,28 @@ def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine h
             end_date,
         )
 
-        progress.update_status("michael_burry_agent", ticker, "Fetching insider trades")
+        progress.update_status(agent_id, ticker, "Fetching insider trades")
         insider_trades = get_insider_trades(ticker, end_date=end_date, start_date=start_date)
 
-        progress.update_status("michael_burry_agent", ticker, "Fetching company news")
+        progress.update_status(agent_id, ticker, "Fetching company news")
         news = get_company_news(ticker, end_date=end_date, start_date=start_date, limit=250)
 
-        progress.update_status("michael_burry_agent", ticker, "Fetching market cap")
+        progress.update_status(agent_id, ticker, "Fetching market cap")
         market_cap = get_market_cap(ticker, end_date)
 
         # ------------------------------------------------------------------
         # Run sub‑analyses
         # ------------------------------------------------------------------
-        progress.update_status("michael_burry_agent", ticker, "Analyzing value")
+        progress.update_status(agent_id, ticker, "Analyzing value")
         value_analysis = _analyze_value(metrics, line_items, market_cap)
 
-        progress.update_status("michael_burry_agent", ticker, "Analyzing balance sheet")
+        progress.update_status(agent_id, ticker, "Analyzing balance sheet")
         balance_sheet_analysis = _analyze_balance_sheet(metrics, line_items)
 
-        progress.update_status("michael_burry_agent", ticker, "Analyzing insider activity")
+        progress.update_status(agent_id, ticker, "Analyzing insider activity")
         insider_analysis = _analyze_insider_activity(insider_trades)
 
-        progress.update_status("michael_burry_agent", ticker, "Analyzing contrarian sentiment")
+        progress.update_status(agent_id, ticker, "Analyzing contrarian sentiment")
         contrarian_analysis = _analyze_contrarian_sentiment(news)
 
         # ------------------------------------------------------------------
@@ -139,11 +139,12 @@ def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine h
             "market_cap": market_cap,
         }
 
-        progress.update_status("michael_burry_agent", ticker, "Generating LLM output")
+        progress.update_status(agent_id, ticker, "Generating LLM output")
         burry_output = _generate_burry_output(
             ticker=ticker,
             analysis_data=analysis_data,
             state=state,
+            agent_id=agent_id,
         )
 
         burry_analysis[ticker] = {
@@ -152,19 +153,19 @@ def michael_burry_agent(state: AgentState):  # noqa: C901  (complexity is fine h
             "reasoning": burry_output.reasoning,
         }
 
-        progress.update_status("michael_burry_agent", ticker, "Done", analysis=burry_output.reasoning)
+        progress.update_status(agent_id, ticker, "Done", analysis=burry_output.reasoning)
 
     # ----------------------------------------------------------------------
     # Return to the graph
     # ----------------------------------------------------------------------
-    message = HumanMessage(content=json.dumps(burry_analysis), name="michael_burry_agent")
+    message = HumanMessage(content=json.dumps(burry_analysis), name=agent_id)
 
     if state["metadata"].get("show_reasoning"):
         show_agent_reasoning(burry_analysis, "Michael Burry Agent")
 
-    state["data"]["analyst_signals"]["michael_burry_agent"] = burry_analysis
+    state["data"]["analyst_signals"][agent_id] = burry_analysis
 
-    progress.update_status("michael_burry_agent", None, "Done")
+    progress.update_status(agent_id, None, "Done")
 
     return {"messages": [message], "data": state["data"]}
 
@@ -328,6 +329,7 @@ def _generate_burry_output(
     ticker: str,
     analysis_data: dict,
     state: AgentState,
+    agent_id: str,
 ) -> MichaelBurrySignal:
     """Call the LLM to craft the final trading signal in Burry's voice."""
 
@@ -380,7 +382,7 @@ def _generate_burry_output(
     return call_llm(
         prompt=prompt,
         pydantic_model=MichaelBurrySignal,
-        agent_name="michael_burry_agent",
+        agent_name=agent_id,
         state=state,
         default_factory=create_default_michael_burry_signal,
     )
