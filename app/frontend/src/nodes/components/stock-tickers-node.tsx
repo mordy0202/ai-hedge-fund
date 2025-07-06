@@ -153,7 +153,7 @@ export function StockTickersNode({
     
     // Then filter for nodes that are agents
     nodes.forEach(node => {
-      if (node.type === 'agent-node' && connectedNodeIds.has(node.id)) {
+      if (node.id !== id) {
         selectedAgents.add(node.id);
       }
     });
