@@ -57,7 +57,7 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
       ]
     },
     {
-      name: "Decision Makers",
+      name: "Decision Nodes",
       icon: Brain,
       iconColor: "text-green-400",
       items: [
