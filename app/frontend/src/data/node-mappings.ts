@@ -13,36 +13,12 @@ let nodeTypeDefinitionsCache: Record<string, NodeTypeDefinition> | null = null;
 const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
   "Portfolio Manager": {
     createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `portfolio-manager-node`,
+      id: `portfolio_manager`,
       type: "portfolio-manager-node",
       position,
       data: {
         name: "Portfolio Manager",
         description: "Start Node",
-        status: "Idle",
-      },
-    }),
-  },
-  "JSON Output": {
-    createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `json-output-node`,
-      type: "json-output-node",
-      position,
-      data: {
-        name: "JSON Output",
-        description: "End Node",
-        status: "Idle",
-      },
-    }),
-  },
-  "Investment Report": {
-    createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `investment-report-node`,
-      type: "investment-report-node",
-      position,
-      data: {
-        name: "Investment Report",
-        description: "End Node",
         status: "Idle",
       },
     }),

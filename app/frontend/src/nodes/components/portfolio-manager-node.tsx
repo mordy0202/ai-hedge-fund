@@ -1,4 +1,4 @@
-import { getConnectedEdges, useReactFlow, type NodeProps } from '@xyflow/react';
+import { type NodeProps } from '@xyflow/react';
 import { Brain } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -10,6 +10,7 @@ import { useFlowContext } from '@/contexts/flow-context';
 import { useNodeContext } from '@/contexts/node-context';
 import { getModels, LanguageModel } from '@/data/models';
 import { useNodeState } from '@/hooks/use-node-state';
+import { useOutputNodeConnection } from '@/hooks/use-output-node-connection';
 import { cn } from '@/lib/utils';
 import { type PortfolioManagerNode } from '../types';
 import { getStatusColor } from '../utils';
@@ -23,9 +24,7 @@ export function PortfolioManagerNode({
   isConnectable,
 }: NodeProps<PortfolioManagerNode>) {
   const { currentFlowId } = useFlowContext();
-  const { getAgentNodeDataForFlow, setAgentModel, getAgentModel, getOutputNodeDataForFlow } =
-    useNodeContext();
-  const { getEdges, getNode } = useReactFlow();
+  const { getAgentNodeDataForFlow, setAgentModel, getAgentModel, getOutputNodeDataForFlow } = useNodeContext();
 
   // Get agent node data for the current flow
   const agentNodeData = getAgentNodeDataForFlow(currentFlowId?.toString() || null);
@@ -87,17 +86,7 @@ export function PortfolioManagerNode({
   const outputNodeData = getOutputNodeDataForFlow(currentFlowId?.toString() || null);
 
   // Get connected agent IDs
-  const connectedAgentIds = new Set<string>();
-  if (outputNodeData) {
-    const node = getNode(id);
-    const edges = getEdges();
-    const connectedEdges = getConnectedEdges(node ? [node] : [], edges);
-    connectedEdges.forEach(edge => {
-      if (edge.source === id) {
-        connectedAgentIds.add(edge.target);
-      }
-    });
-  }
+  const { connectedAgentIds } = useOutputNodeConnection(id);
 
   return (
     <>
@@ -133,7 +122,6 @@ export function PortfolioManagerNode({
                 {outputNodeData && (
                   <Button
                     size="sm"
-                    variant="secondary"
                     onClick={() => setIsDialogOpen(true)}
                   >
                     View Investment Report

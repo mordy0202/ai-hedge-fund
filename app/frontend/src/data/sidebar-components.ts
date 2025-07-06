@@ -3,7 +3,6 @@ import {
   Bot,
   Brain,
   Calculator,
-  Lightbulb,
   List,
   LucideIcon,
   Network,
@@ -59,7 +58,7 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
     },
     {
       name: "Decision Makers",
-      icon: Lightbulb,
+      icon: Brain,
       iconColor: "text-green-400",
       items: [
         { name: "Portfolio Manager", icon: Brain },
