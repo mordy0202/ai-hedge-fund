@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from src.llm.models import ModelProvider
 from enum import Enum
+from app.backend.services.graph import extract_base_agent_key
 
 
 class FlowRunStatus(str, Enum):
@@ -48,8 +49,13 @@ class HedgeFundRequest(BaseModel):
     def get_agent_model_config(self, agent_id: str) -> tuple[str, ModelProvider]:
         """Get model configuration for a specific agent"""
         if self.agent_models:
+            # Extract base agent key from unique node ID for matching
+            base_agent_key = extract_base_agent_key(agent_id)
+            
             for config in self.agent_models:
-                if config.agent_id == agent_id:
+                # Check both unique node ID and base agent key for matches
+                config_base_key = extract_base_agent_key(config.agent_id)
+                if config.agent_id == agent_id or config_base_key == base_agent_key:
                     return (
                         config.model_name or self.model_name,
                         config.model_provider or self.model_provider

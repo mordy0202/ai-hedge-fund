@@ -1,13 +1,35 @@
 import asyncio
 import json
+import re
 from langchain_core.messages import HumanMessage
 from langgraph.graph import END, StateGraph
 
+from app.backend.services.agent_service import create_agent_function
 from src.agents.portfolio_manager import portfolio_management_agent
 from src.agents.risk_manager import risk_management_agent
 from src.main import start
 from src.utils.analysts import ANALYST_CONFIG
 from src.graph.state import AgentState
+
+
+def extract_base_agent_key(unique_id: str) -> str:
+    """
+    Extract the base agent key from a unique node ID.
+    
+    Args:
+        unique_id: The unique node ID with suffix (e.g., "warren_buffett_abc123")
+    
+    Returns:
+        The base agent key (e.g., "warren_buffett")
+    """
+    # For agent nodes, remove the last underscore and 6-character suffix
+    parts = unique_id.split('_')
+    if len(parts) >= 2:
+        last_part = parts[-1]
+        # If the last part is a 6-character alphanumeric string, it's likely our suffix
+        if len(last_part) == 6 and re.match(r'^[a-z0-9]+$', last_part):
+            return '_'.join(parts[:-1])
+    return unique_id  # Return original if no suffix pattern found
 
 
 # Helper function to create the agent graph
@@ -16,24 +38,30 @@ def create_graph(selected_agents: list[str]) -> StateGraph:
     graph = StateGraph(AgentState)
     graph.add_node("start_node", start)
 
+    # Extract base agent keys from unique node IDs
+    base_agent_keys = [extract_base_agent_key(agent_id) for agent_id in selected_agents]
+
     # Filter out any agents that are not in analyst.py
-    selected_agents = [agent for agent in selected_agents if agent in ANALYST_CONFIG]
+    valid_agent_keys = [agent for agent in base_agent_keys if agent in ANALYST_CONFIG]
 
     # Get analyst nodes from the configuration
     analyst_nodes = {key: (f"{key}_agent", config["agent_func"]) for key, config in ANALYST_CONFIG.items()}
 
     # Add selected analyst nodes
-    for agent_name in selected_agents:
+    for agent_name in valid_agent_keys:
         node_name, node_func = analyst_nodes[agent_name]
-        graph.add_node(node_name, node_func)
+        agent_function = create_agent_function(node_func, agent_name)
+        graph.add_node(node_name, agent_function)
         graph.add_edge("start_node", node_name)
 
     # TODO - do not always add risk and portfolio management (for now)
     graph.add_node("risk_management_agent", risk_management_agent)
-    graph.add_node("portfolio_manager", portfolio_management_agent)
+
+    portfolio_manager_function = create_agent_function(portfolio_management_agent, "portfolio_manager")
+    graph.add_node("portfolio_manager", portfolio_manager_function)
 
     # Connect selected agents to risk management
-    for agent_name in selected_agents:
+    for agent_name in valid_agent_keys:
         node_name = analyst_nodes[agent_name][0]
         graph.add_edge(node_name, "risk_management_agent")
 
