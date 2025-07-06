@@ -1,3 +1,5 @@
+import { extractBaseAgentKey } from '@/data/node-mappings';
+
 /**
  * Splits text into smaller paragraphs for better readability.
  * @param text The text to format
@@ -229,4 +231,41 @@ export function createHighlightedJson(jsonString: string): string {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
   }
+}
+
+/**
+ * Creates clean display names for agents by removing unique ID suffixes and adding numbering for duplicates
+ * @param agentIds Array of unique agent IDs (e.g., ["warren_buffett_abc123", "fundamentals_xyz789"])
+ * @returns Map of agent ID to clean display name (e.g., "Warren Buffett", "Fundamentals #1")
+ */
+export function createAgentDisplayNames(agentIds: string[]): Map<string, string> {
+  // Extract base agent keys and count occurrences
+  const baseAgentCounts = new Map<string, number>();
+  const baseAgentKeys = agentIds.map(id => extractBaseAgentKey(id));
+  
+  baseAgentKeys.forEach(baseKey => {
+    baseAgentCounts.set(baseKey, (baseAgentCounts.get(baseKey) || 0) + 1);
+  });
+  
+  // Create display names with numbering for duplicates
+  const baseAgentCounters = new Map<string, number>();
+  const displayNames = new Map<string, string>();
+  
+  agentIds.forEach(agentId => {
+    const baseKey = extractBaseAgentKey(agentId);
+    const count = baseAgentCounts.get(baseKey) || 1;
+    
+    // Convert snake_case to readable format
+    const readableName = baseKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    if (count > 1) {
+      const currentCounter = (baseAgentCounters.get(baseKey) || 0) + 1;
+      baseAgentCounters.set(baseKey, currentCounter);
+      displayNames.set(agentId, `${readableName} #${currentCounter}`);
+    } else {
+      displayNames.set(agentId, readableName);
+    }
+  });
+  
+  return displayNames;
 } 
