@@ -38,39 +38,37 @@ def create_graph(selected_agents: list[str]) -> StateGraph:
     graph = StateGraph(AgentState)
     graph.add_node("start_node", start)
 
-    # Extract base agent keys from unique node IDs
-    base_agent_keys = [extract_base_agent_key(agent_id) for agent_id in selected_agents]
-
-    # Create mapping from base agent key to unique node ID
-    base_to_unique_mapping = {
-        extract_base_agent_key(agent_id): agent_id 
-        for agent_id in selected_agents
-    }
-
-    # Filter out any agents that are not in analyst.py
-    valid_agent_keys = [agent for agent in base_agent_keys if agent in ANALYST_CONFIG]
-
     # Get analyst nodes from the configuration
     analyst_nodes = {key: (f"{key}_agent", config["agent_func"]) for key, config in ANALYST_CONFIG.items()}
 
-    # Add selected analyst nodes
-    for base_agent_key in valid_agent_keys:
+    # Add selected analyst nodes - iterate directly over selected_agents to handle duplicates
+    for unique_agent_id in selected_agents:
+        base_agent_key = extract_base_agent_key(unique_agent_id)
+        
+        # Skip if the base agent key is not in our analyst configuration
+        if base_agent_key not in ANALYST_CONFIG:
+            continue
+            
+        # Skip portfolio_manager nodes as they are handled separately below
+        if base_agent_key == "portfolio_manager":
+            continue
+            
         node_name, node_func = analyst_nodes[base_agent_key]
-        unique_agent_id = base_to_unique_mapping[base_agent_key]
         agent_function = create_agent_function(node_func, unique_agent_id)
-        graph.add_node(node_name, agent_function)
-        graph.add_edge("start_node", node_name)
+        graph.add_node(unique_agent_id, agent_function)
+        graph.add_edge("start_node", unique_agent_id)
 
-    # TODO - do not always add risk and portfolio management (for now)
+    # TODO - do not always add risk and portfolio management
     graph.add_node("risk_management_agent", risk_management_agent)
 
     portfolio_manager_function = create_agent_function(portfolio_management_agent, "portfolio_manager")
     graph.add_node("portfolio_manager", portfolio_manager_function)
 
-    # Connect selected agents to risk management
-    for base_agent_key in valid_agent_keys:
-        node_name = analyst_nodes[base_agent_key][0]
-        graph.add_edge(node_name, "risk_management_agent")
+    # Connect all selected agents to risk management
+    for unique_agent_id in selected_agents:
+        base_agent_key = extract_base_agent_key(unique_agent_id)
+        if base_agent_key in ANALYST_CONFIG and base_agent_key != "portfolio_manager":
+            graph.add_edge(unique_agent_id, "risk_management_agent")
 
     # Connect the risk management agent to the portfolio management agent
     graph.add_edge("risk_management_agent", "portfolio_manager")
