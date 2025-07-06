@@ -72,15 +72,6 @@ export function AgentOutputDialog({
   // Get all unique tickers that have decisions
   const tickersWithDecisions = Object.keys(allAnalysis);
 
-  console.log('nodeData for agent with id', nodeId, nodeData);
-  console.log(`[AgentOutputDialog] Flow ${flowId}, Agent ${nodeId}:`, {
-    messageCount: messages.length,
-    nodeStatus,
-    flowId,
-    nodeId,
-    messages: messages.map(m => ({ ticker: m.ticker, message: m.message, timestamp: m.timestamp }))
-  });
-
   // Reset selected ticker when node changes
   useEffect(() => {
     setSelectedTicker(null);
