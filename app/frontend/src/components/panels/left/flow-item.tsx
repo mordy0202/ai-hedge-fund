@@ -109,7 +109,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
           "group flex items-center justify-between px-4 py-3 transition-colors cursor-pointer",
           isActive 
             ? "border-l-2 border-blue-500" 
-            : "hover:bg-ramp-grey-700"
+            : "hover-bg"
         )}
         onClick={handleLoadFlow}
         onContextMenu={handleContextMenu}
@@ -122,7 +122,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
               ) : (
                 <FileText size={14} className={cn(
                   "flex-shrink-0",
-                  isActive ? "text-blue-500" : "text-gray-400"
+                  isActive ? "text-blue-500" : "text-muted-foreground"
                 )} />
               )}
               <span
@@ -147,7 +147,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
             )}
           </div>
           
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar size={10} />
             <span>{formatDateTime(flow.created_at)}</span>
           </div>
@@ -173,7 +173,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
             variant="ghost"
             size="icon"
             onClick={handleMenuClick}
-            className="h-6 w-6 text-gray-400 hover:text-primary hover:bg-ramp-grey-600 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 text-muted-foreground hover-item opacity-0 group-hover:opacity-100 transition-opacity rounded"
             title="More options"
           >
             <MoreHorizontal size={14} />

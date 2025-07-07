@@ -74,29 +74,30 @@ export function CloudModels({ className }: CloudModelsProps) {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-medium text-gray-100">Available Models</h3>
-          <span className="text-xs text-gray-400">
+          <h3 className="font-medium text-primary
+          ">Available Models</h3>
+          <span className="text-xs text-muted-foreground">
             {allModels.length} models from {providers.length} providers
           </span>
         </div>
 
         {loading ? (
           <div className="text-center py-8">
-            <RefreshCw className="h-8 w-8 mx-auto mb-2 animate-spin text-gray-400" />
-            <p className="text-sm text-gray-400">Loading cloud models...</p>
+            <RefreshCw className="h-8 w-8 mx-auto mb-2 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading cloud models...</p>
           </div>
         ) : allModels.length > 0 ? (
           <div className="space-y-1">
             {allModels.map((model) => (
               <div 
                 key={`${model.provider}-${model.model_name}`}
-                className="group flex items-center justify-between bg-gray-700/30 hover:bg-gray-700/50 rounded-md px-3 py-2.5 transition-colors"
+                className="group flex items-center justify-between bg-gray-700/30 hover-bg rounded-md px-3 py-2.5 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm truncate text-gray-200">{model.display_name}</span>
+                    <span className="font-medium text-sm truncate text-primary">{model.display_name}</span>
                     {model.model_name !== model.display_name && (
-                      <span className="font-mono text-xs text-gray-400">
+                      <span className="font-mono text-xs text-muted-foreground">
                         {model.model_name}
                       </span>
                     )}
@@ -113,7 +114,7 @@ export function CloudModels({ className }: CloudModelsProps) {
           </div>
         ) : (
           !loading && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <Cloud className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No models available</p>
             </div>

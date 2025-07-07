@@ -34,7 +34,7 @@ export function ComponentList({
       
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="text-gray-400 text-sm">Loading components...</div>
+          <div className="text-muted-foreground text-sm">Loading components...</div>
         </div>
       ) : (
         <Accordion 
@@ -54,7 +54,7 @@ export function ComponentList({
       )}
 
       {!isLoading && filteredGroups.length === 0 && (
-        <div className="text-center py-8 text-gray-400 text-sm">
+        <div className="text-center py-8 text-muted-foreground text-sm">
           {componentGroups.length === 0 ? (
             <div className="space-y-2">
               <div>No components available</div>

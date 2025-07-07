@@ -31,20 +31,20 @@ export function AppearanceSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-100 mb-2">Appearance</h2>
-        <p className="text-sm text-gray-400 dark:text-gray-400">
+        <h2 className="text-xl font-semibold text-primary mb-2">Appearance</h2>
+        <p className="text-sm text-muted-foreground">
           Customize the look and feel of your application.
         </p>
       </div>
 
       <Card className="bg-panel border-gray-700 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-lg font-medium text-gray-100 dark:text-gray-100">
+          <CardTitle className="text-lg font-medium text-primary">
             Theme
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-400 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Select your preferred theme or use system setting to automatically switch between light and dark modes.
           </p>
           
@@ -58,7 +58,7 @@ export function AppearanceSettings() {
                   key={themeOption.id}
                   variant="outline"
                   className={cn(
-                    "flex flex-col items-center gap-3 h-auto p-4 bg-panel border-gray-600 hover:border-gray-500 transition-colors",
+                    "flex flex-col items-center gap-3 h-auto p-4 bg-panel border-gray-600 hover:border-primary hover-bg",
                     isSelected && "border-blue-500 bg-blue-500/10 text-blue-500"
                   )}
                   onClick={() => setTheme(themeOption.id)}
@@ -66,7 +66,7 @@ export function AppearanceSettings() {
                   <Icon className="h-6 w-6" />
                   <div className="text-center">
                     <div className="font-medium text-sm">{themeOption.name}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-400 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {themeOption.description}
                     </div>
                   </div>
