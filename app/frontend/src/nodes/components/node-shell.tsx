@@ -56,7 +56,7 @@ export function NodeShell({
         <Card className="bg-panel rounded-none overflow-hidden border-none">
           <CardHeader className="p-3 bg-panel flex flex-row items-center space-x-2 rounded-t-sm">
             <div className={cn(
-              "flex items-center justify-center h-8 w-8 rounded-lg text-white",
+              "flex items-center justify-center h-8 w-8 rounded-lg text-primary",
               isInProgress ? "gradient-animation" : iconColor
             )}>
               {icon}

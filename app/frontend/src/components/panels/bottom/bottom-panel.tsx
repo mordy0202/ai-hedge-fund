@@ -65,28 +65,28 @@ export function BottomPanel({
             <TabsList className="bg-transparent border-none p-0 h-auto">
               <TabsTrigger 
                 value="terminal" 
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-white text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
               >
                 <Terminal size={14} />
                 Terminal
               </TabsTrigger>
               <TabsTrigger 
                 value="output"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-white text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
               >
                 <FileText size={14} />
                 Output
               </TabsTrigger>
               <TabsTrigger 
                 value="debug"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-white text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
               >
                 <Bug size={14} />
                 Debug Console
               </TabsTrigger>
               <TabsTrigger 
                 value="problems"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-white text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
               >
                 <AlertCircle size={14} />
                 Problems
@@ -97,7 +97,7 @@ export function BottomPanel({
               variant="ghost"
               size="icon"
               onClick={onToggleCollapse}
-              className="h-6 w-6 text-white hover:bg-ramp-grey-700"
+              className="h-6 w-6 text-primary hover:bg-ramp-grey-700"
               aria-label="Close panel"
             >
               <X size={14} />

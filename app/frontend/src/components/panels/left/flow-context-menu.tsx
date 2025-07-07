@@ -69,7 +69,7 @@ export function FlowContextMenu({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-white hover:bg-ramp-grey-700"
+          className="w-full justify-start text-primary hover:bg-ramp-grey-700"
           onClick={() => handleAction(onEdit)}
         >
           <Edit size={14} className="mr-2" />
@@ -79,7 +79,7 @@ export function FlowContextMenu({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-white hover:bg-ramp-grey-700"
+          className="w-full justify-start text-primary hover:bg-ramp-grey-700"
           onClick={() => handleAction(onDuplicate)}
         >
           <Copy size={14} className="mr-2" />

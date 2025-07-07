@@ -11,7 +11,7 @@ export function CustomControls({ onReset }: CustomControlsProps) {
       position="bottom-center" 
       orientation="horizontal" 
       style={{ bottom: 20, borderRadius: 20, gap: 10 }}
-      className="bg-ramp-grey-800 text-white px-4 py-2 rounded-md [&_button]:border-0 [&_button]:outline-0 [&_button]:shadow-none"
+      className="bg-ramp-grey-800 text-primary px-4 py-2 rounded-md [&_button]:border-0 [&_button]:outline-0 [&_button]:shadow-none"
     >
             <ControlButton onClick={onReset} title="Reset Flow">
               <ResetIcon />

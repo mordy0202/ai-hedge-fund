@@ -6,9 +6,9 @@ import FlowItem from './flow-item';
 interface FlowItemGroupProps {
   title: string;
   flows: Flow[];
-  onLoadFlow: (flow: Flow) => void;
+  onLoadFlow: (flow: Flow) => Promise<void>;
   onDeleteFlow: (flow: Flow) => Promise<void>;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void>;
   currentFlowId?: number | null;
 }
 
@@ -17,7 +17,7 @@ export function FlowItemGroup({ title, flows, onLoadFlow, onDeleteFlow, onRefres
 
   return (
     <AccordionItem value={groupId} className="border-ramp-grey-700">
-      <AccordionTrigger className="px-4 py-2 text-white hover:bg-ramp-grey-700 hover:no-underline">
+      <AccordionTrigger className="px-4 py-2 text-primary hover:bg-ramp-grey-700 hover:no-underline">
         <div className="flex items-center justify-between w-full">
           <span className="text-xs font-medium">{title}</span>
           <span className="text-xs text-gray-400">({flows.length})</span>

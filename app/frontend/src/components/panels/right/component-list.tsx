@@ -25,7 +25,7 @@ export function ComponentList({
   onAccordionChange,
 }: ComponentListProps) {
   return (
-    <div className="flex-grow overflow-auto text-white scrollbar-thin scrollbar-thumb-ramp-grey-700">
+    <div className="flex-grow overflow-auto text-primary scrollbar-thin scrollbar-thumb-ramp-grey-700">
       <SearchBox 
         value={searchQuery} 
         onChange={onSearchChange}

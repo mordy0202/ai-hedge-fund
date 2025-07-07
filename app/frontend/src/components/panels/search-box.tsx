@@ -19,7 +19,7 @@ export function SearchBox({
         <input 
           type="text" 
           placeholder={placeholder} 
-          className="bg-transparent text-sm focus:outline-none text-white w-full placeholder-gray-400"
+          className="bg-transparent text-sm focus:outline-none text-primary w-full placeholder-gray-400"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -28,7 +28,7 @@ export function SearchBox({
             variant="ghost"
             size="icon"
             onClick={() => onChange('')}
-            className="h-4 w-4 text-gray-400 hover:text-white"
+            className="h-4 w-4 text-gray-400 hover:text-primary"
             aria-label="Clear search"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

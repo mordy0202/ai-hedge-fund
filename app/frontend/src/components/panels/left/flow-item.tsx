@@ -130,7 +130,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
                   "text-subtitle font-medium text-left truncate",
                   isActive 
                     ? "text-blue-300" 
-                    : "text-white"
+                    : "text-primary"
                 )}
                 title={flow.name}
               >
@@ -173,7 +173,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
             variant="ghost"
             size="icon"
             onClick={handleMenuClick}
-            className="h-6 w-6 text-gray-400 hover:text-white hover:bg-ramp-grey-600 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 text-gray-400 hover:text-primary hover:bg-ramp-grey-600 opacity-0 group-hover:opacity-100 transition-opacity"
             title="More options"
           >
             <MoreHorizontal size={14} />
