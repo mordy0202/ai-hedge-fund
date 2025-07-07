@@ -11,6 +11,7 @@ import {
   useEdgesState,
   useNodesState
 } from '@xyflow/react';
+import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import '@xyflow/react/dist/style.css';
@@ -30,7 +31,11 @@ type FlowProps = {
 };
 
 export function Flow({ className = '' }: FlowProps) {
-  const [colorMode] = useState<ColorMode>('dark');
+  const { theme, resolvedTheme } = useTheme();
+  
+  // Use the resolved theme for ReactFlow ColorMode
+  const colorMode: ColorMode = resolvedTheme === 'light' ? 'light' : 'dark';
+  
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isInitialized, setIsInitialized] = useState(false);
