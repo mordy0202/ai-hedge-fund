@@ -6,17 +6,16 @@ import { Plus, Save } from 'lucide-react';
 interface FlowActionsProps {
   onSave: () => Promise<void>;
   onCreate: () => void;
-  onToggleCollapse: () => void;
 }
 
-export function FlowActions({ onSave, onCreate, onToggleCollapse }: FlowActionsProps) {
+export function FlowActions({ onSave, onCreate }: FlowActionsProps) {
   const { currentFlowName, isUnsaved } = useFlowContext();
 
   return (
     <div className="p-2 flex justify-between flex-shrink-0 items-center border-b border-ramp-grey-700 mt-4">
       <span className="text-primary text-sm font-medium ml-4">
         Flows
-        {isUnsaved && <span className="text-yellow-400 ml-1">*</span>}
+        {isUnsaved && <span className="text-yellow-500 ml-1">*</span>}
       </span>
       <div className="flex items-center gap-1">
         <Button
@@ -25,7 +24,7 @@ export function FlowActions({ onSave, onCreate, onToggleCollapse }: FlowActionsP
           onClick={onSave}
           className={cn(
             "h-6 w-6 text-primary hover:bg-ramp-grey-700",
-            isUnsaved && "text-yellow-400"
+            isUnsaved && "text-yellow-500"
           )}
           title={`Save "${currentFlowName}"`}
         >

@@ -33,7 +33,7 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
     {
       name: "Start Nodes",
       icon: Play,
-      iconColor: "text-blue-400",
+      iconColor: "text-blue-500",
       items: [
         { name: "Stock Tickers", icon: List },
       ]
@@ -41,16 +41,16 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
     {
       name: "Analysts",
       icon: Bot,
-      iconColor: "text-red-400",
+      iconColor: "text-red-500",
       items: agents.map((agent: Agent) => ({
         name: agent.display_name,
         icon: Bot
       }))
     },
     {
-      name: "Teams",
+      name: "Swarms",
       icon: Network,
-      iconColor: "text-yellow-400",
+      iconColor: "text-yellow-500",
       items: [
         { name: "Data Wizards", icon: Calculator },
         { name: "Value Investors", icon: BadgeDollarSign },
@@ -59,7 +59,7 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
     {
       name: "Decision Nodes",
       icon: Brain,
-      iconColor: "text-green-400",
+      iconColor: "text-green-500",
       items: [
         { name: "Portfolio Manager", icon: Brain },
         // { name: "JSON Output", icon: FileJson },

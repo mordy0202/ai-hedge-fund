@@ -149,7 +149,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
           isCollapsed={isLeftCollapsed}
           onCollapse={() => setIsLeftCollapsed(true)}
           onExpand={() => setIsLeftCollapsed(false)}
-          onToggleCollapse={() => setIsLeftCollapsed(!isLeftCollapsed)}
           onWidthChange={setLeftSidebarWidth}
         />
       </div>
@@ -163,7 +162,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
           isCollapsed={isRightCollapsed}
           onCollapse={() => setIsRightCollapsed(true)}
           onExpand={() => setIsRightCollapsed(false)}
-          onToggleCollapse={() => setIsRightCollapsed(!isRightCollapsed)}
           onWidthChange={setRightSidebarWidth}
         />
       </div>

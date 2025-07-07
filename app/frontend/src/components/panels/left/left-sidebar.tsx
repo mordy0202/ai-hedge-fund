@@ -11,13 +11,11 @@ interface LeftSidebarProps {
   isCollapsed: boolean;
   onCollapse: () => void;
   onExpand: () => void;
-  onToggleCollapse: () => void;
   onWidthChange?: (width: number) => void;
 }
 
 export function LeftSidebar({
   isCollapsed,
-  onToggleCollapse,
   onWidthChange,
 }: LeftSidebarProps) {
   // Use our custom hooks
@@ -69,7 +67,6 @@ export function LeftSidebar({
       <FlowActions
         onSave={handleSaveCurrentFlow}
         onCreate={handleCreateNewFlow}
-        onToggleCollapse={onToggleCollapse}
       />
       
       <FlowList

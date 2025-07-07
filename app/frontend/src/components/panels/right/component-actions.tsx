@@ -3,7 +3,7 @@ interface ComponentActionsProps {
   onToggleCollapse: () => void;
 }
 
-export function ComponentActions({ onToggleCollapse }: ComponentActionsProps) {
+export function ComponentActions({ }: ComponentActionsProps) {
   return (
     <div className="p-2 flex justify-between flex-shrink-0 items-center border-b border-ramp-grey-700 mt-4">
       <span className="text-primary text-sm font-medium ml-4">Components</span>

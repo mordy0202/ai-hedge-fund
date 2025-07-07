@@ -89,7 +89,7 @@ export function FlowContextMenu({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-red-400 hover:bg-ramp-grey-700 hover:text-red-300"
+          className="w-full justify-start text-red-500 hover:bg-ramp-grey-700 hover:text-red-300"
           onClick={() => handleAction(onDelete)}
         >
           <Trash2 size={14} className="mr-2" />

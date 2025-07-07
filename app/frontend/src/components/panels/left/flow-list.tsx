@@ -100,7 +100,7 @@ export function FlowList({
         <div className="text-center py-8 text-gray-400 text-sm">
           {flows.length === 0 ? (
             <div className="space-y-2">
-              <FolderOpen size={32} className="mx-auto text-gray-500" />
+              <FolderOpen size={32} className="mx-auto text-gray-400" />
               <div>No flows saved yet</div>
               <div className="text-xs">Create your first flow to get started</div>
             </div>

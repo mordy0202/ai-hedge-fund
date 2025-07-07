@@ -11,13 +11,11 @@ interface RightSidebarProps {
   isCollapsed: boolean;
   onCollapse: () => void;
   onExpand: () => void;
-  onToggleCollapse: () => void;
   onWidthChange?: (width: number) => void;
 }
 
 export function RightSidebar({
   isCollapsed,
-  onToggleCollapse,
   onWidthChange,
 }: RightSidebarProps) {
   // Use our custom hooks
@@ -75,7 +73,7 @@ export function RightSidebar({
         width: `${width}px`
       }}
     >
-      <ComponentActions onToggleCollapse={onToggleCollapse} />
+      <ComponentActions />
       
       <ComponentList
         componentGroups={componentGroups}
