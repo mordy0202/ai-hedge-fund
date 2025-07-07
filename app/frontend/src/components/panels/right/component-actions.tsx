@@ -1,6 +1,5 @@
 
 interface ComponentActionsProps {
-  onToggleCollapse: () => void;
 }
 
 export function ComponentActions({ }: ComponentActionsProps) {
