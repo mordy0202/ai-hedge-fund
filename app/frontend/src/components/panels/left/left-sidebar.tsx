@@ -56,9 +56,8 @@ export function LeftSidebar({
     <div 
       ref={elementRef}
       className={cn(
-        "h-full bg-panel flex flex-col relative pt-5 border-r border-ramp-grey-700 dark:border-ramp-grey-800",
+        "h-full bg-panel flex flex-col relative pt-5 border",
         isCollapsed ? "shadow-lg" : "",
-        isDragging ? "select-none border-r-0" : ""
       )}
       style={{ 
         width: `${width}px`
