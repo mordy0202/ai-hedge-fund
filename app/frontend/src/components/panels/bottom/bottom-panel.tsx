@@ -43,7 +43,7 @@ export function BottomPanel({
     <div 
       ref={elementRef}
       className={cn(
-        "bg-panel flex flex-col relative border-t border-ramp-grey-900",
+        "bg-panel flex flex-col relative border-t",
         isDragging ? "select-none" : ""
       )}
       style={{ 
@@ -53,40 +53,40 @@ export function BottomPanel({
       {/* Resize handle - on the top for bottom panel */}
       {!isDragging && (
         <div 
-          className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize transition-all duration-150 z-10 hover:bg-primary/20"
+          className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize transition-all duration-150 z-10 hover-bg"
           onMouseDown={startResize}
         />
       )}
 
       {/* Header with tabs and close button */}
-      <div className="flex items-center justify-between border-b border-ramp-grey-700 px-4 py-2">
+      <div className="flex items-center justify-between border-b px-4 py-2">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
           <div className="flex items-center justify-between">
             <TabsList className="bg-transparent border-none p-0 h-auto">
               <TabsTrigger 
                 value="terminal" 
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
               >
                 <Terminal size={14} />
                 Terminal
               </TabsTrigger>
               <TabsTrigger 
                 value="output"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
               >
                 <FileText size={14} />
                 Output
               </TabsTrigger>
               <TabsTrigger 
                 value="debug"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
               >
                 <Bug size={14} />
                 Debug Console
               </TabsTrigger>
               <TabsTrigger 
                 value="problems"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:bg-ramp-grey-700 data-[state=active]:text-primary text-muted-foreground"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
               >
                 <AlertCircle size={14} />
                 Problems
@@ -97,7 +97,7 @@ export function BottomPanel({
               variant="ghost"
               size="icon"
               onClick={onToggleCollapse}
-              className="h-6 w-6 text-primary hover:bg-ramp-grey-700"
+              className="h-6 w-6 text-primary hover-bg"
               aria-label="Close panel"
             >
               <X size={14} />
