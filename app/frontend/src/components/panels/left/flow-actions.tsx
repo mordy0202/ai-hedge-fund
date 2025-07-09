@@ -12,7 +12,7 @@ export function FlowActions({ onSave, onCreate }: FlowActionsProps) {
   const { currentFlowName, isUnsaved } = useFlowContext();
 
   return (
-    <div className="p-2 flex justify-between flex-shrink-0 items-center border-b border-ramp-grey-700 mt-4">
+    <div className="p-2 flex justify-between flex-shrink-0 items-center border-b mt-4">
       <span className="text-primary text-sm font-medium ml-4">
         Flows
         {isUnsaved && <span className="text-yellow-500 ml-1">*</span>}
@@ -23,7 +23,7 @@ export function FlowActions({ onSave, onCreate }: FlowActionsProps) {
           size="icon"
           onClick={onSave}
           className={cn(
-            "h-6 w-6 text-primary hover:bg-ramp-grey-700",
+            "h-6 w-6 text-primary hover-bg",
             isUnsaved && "text-yellow-500"
           )}
           title={`Save "${currentFlowName}"`}
@@ -34,7 +34,7 @@ export function FlowActions({ onSave, onCreate }: FlowActionsProps) {
           variant="ghost"
           size="icon"
           onClick={onCreate}
-          className="h-6 w-6 text-primary hover:bg-ramp-grey-700"
+          className="h-6 w-6 text-primary hover-bg"
           title="Create new flow"
         >
           <Plus size={14} />
