@@ -1,21 +1,20 @@
-import { ModelSelector } from '@/components/ui/llm-selector';
-import { getConnectedEdges, useReactFlow, type NodeProps } from '@xyflow/react';
-import { Brain, Play, Square } from 'lucide-react';
-import { useEffect } from 'react';
+import { type NodeProps } from '@xyflow/react';
+import { Brain } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ModelSelector } from '@/components/ui/llm-selector';
 import { useFlowContext } from '@/contexts/flow-context';
 import { useNodeContext } from '@/contexts/node-context';
-import { getDefaultModel, getModels, LanguageModel } from '@/data/models';
-import { useFlowConnection } from '@/hooks/use-flow-connection';
-import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { getModels, LanguageModel } from '@/data/models';
 import { useNodeState } from '@/hooks/use-node-state';
-import { formatKeyboardShortcut } from '@/lib/utils';
+import { useOutputNodeConnection } from '@/hooks/use-output-node-connection';
+import { cn } from '@/lib/utils';
 import { type PortfolioManagerNode } from '../types';
+import { getStatusColor } from '../utils';
+import { InvestmentReportDialog } from './investment-report-dialog';
 import { NodeShell } from './node-shell';
 
 export function PortfolioManagerNode({
@@ -24,284 +23,151 @@ export function PortfolioManagerNode({
   id,
   isConnectable,
 }: NodeProps<PortfolioManagerNode>) {
-  // Calculate default dates
-  const today = new Date();
-  const threeMonthsAgo = new Date(today);
-  threeMonthsAgo.setMonth(today.getMonth() - 3);
-  
-  // Use persistent state hooks
-  const [tickers, setTickers] = useNodeState(id, 'tickers', 'AAPL,NVDA,TSLA');
-  const [selectedModel, setSelectedModel] = useNodeState<LanguageModel | null>(id, 'selectedModel', null);
-  const [availableModels, setAvailableModels] = useNodeState<LanguageModel[]>(id, 'availableModels', []);
-  const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useNodeState(id, 'endDate', today.toISOString().split('T')[0]);
-  const [initialCash, setInitialCash] = useNodeState(id, 'initialCash', '100000');
-  
   const { currentFlowId } = useFlowContext();
-  const nodeContext = useNodeContext();
-  const { getAllAgentModels } = nodeContext;
-  const { getNodes, getEdges } = useReactFlow();
-  
-  // Use the new flow connection hook
-  const flowId = currentFlowId?.toString() || null;
-  const {
-    isConnecting,
-    isConnected,
-    isProcessing,
-    canRun,
-    runFlow,
-    stopFlow,
-    recoverFlowState
-  } = useFlowConnection(flowId);
-  
-  // Check if the hedge fund can be run
-  const canRunHedgeFund = canRun && tickers.trim() !== '';
-  
-  // Add keyboard shortcut for Cmd+Enter / Ctrl+Enter to run hedge fund
-  useKeyboardShortcuts({
-    shortcuts: [
-      {
-        key: 'Enter',
-        ctrlKey: true,
-        metaKey: true,
-        callback: () => {
-          if (canRunHedgeFund) {
-            handlePlay();
-          }
-        },
-        preventDefault: true,
-      },
-    ],
-  });
-  
-  // Load models and set default on mount
+  const { getAgentNodeDataForFlow, setAgentModel, getAgentModel, getOutputNodeDataForFlow } = useNodeContext();
+
+  // Get agent node data for the current flow
+  const agentNodeData = getAgentNodeDataForFlow(currentFlowId?.toString() || null);
+  const nodeData = agentNodeData[id] || {
+    status: 'IDLE',
+    ticker: null,
+    message: '',
+    messages: [],
+    lastUpdated: 0,
+  };
+  const status = nodeData.status;
+  const isInProgress = status === 'IN_PROGRESS';
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Use persistent state hooks
+  const [availableModels, setAvailableModels] = useNodeState<LanguageModel[]>(
+    id,
+    'availableModels',
+    []
+  );
+  const [selectedModel, setSelectedModel] = useNodeState<LanguageModel | null>(
+    id,
+    'selectedModel',
+    null
+  );
+
+  // Load models on mount
   useEffect(() => {
     const loadModels = async () => {
       try {
-        const [models, defaultModel] = await Promise.all([
-          getModels(),
-          getDefaultModel()
-        ]);
+        const models = await getModels();
         setAvailableModels(models);
-        
-        // Only set default model if no model is currently selected
-        if (!selectedModel && defaultModel) {
-          setSelectedModel(defaultModel);
-        }
       } catch (error) {
         console.error('Failed to load models:', error);
-        // Keep empty array and null as fallback
+        // Keep empty array as fallback
       }
     };
-    
+
     loadModels();
-  }, []); // Remove selectedModel from dependencies to avoid infinite loop
+  }, [setAvailableModels]);
 
-  // Recover flow state when component mounts or flow changes
+  // Update the node context when the model changes
   useEffect(() => {
-    if (flowId) {
-      recoverFlowState();
+    const flowId = currentFlowId?.toString() || null;
+    const currentContextModel = getAgentModel(flowId, id);
+    if (selectedModel !== currentContextModel) {
+      setAgentModel(flowId, id, selectedModel);
     }
-  }, [flowId, recoverFlowState]);
+  }, [selectedModel, id, currentFlowId, setAgentModel, getAgentModel]);
+
+  const handleModelChange = (model: LanguageModel | null) => {
+    setSelectedModel(model);
+  };
+
+  const handleUseGlobalModel = () => {
+    setSelectedModel(null);
+  };
   
-  const handleTickersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTickers(e.target.value);
-  };
+  const outputNodeData = getOutputNodeDataForFlow(currentFlowId?.toString() || null);
 
-  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStartDate(e.target.value);
-  };
-
-  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEndDate(e.target.value);
-  };
-
-  const handleInitialCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove non-numeric characters except decimal point
-    const numericValue = e.target.value.replace(/[^0-9.]/g, '');
-    setInitialCash(numericValue);
-  };
-
-  // Format the display value with commas
-  const formatCurrency = (value: string) => {
-    if (!value) return '';
-    const num = parseFloat(value);
-    if (isNaN(num)) return value;
-    return num.toLocaleString('en-US');
-  };
-
-  const handleStop = () => {
-    stopFlow();
-  };
-
-  const handlePlay = () => {
-    // Get the nodes and edges
-    const nodes = getNodes();
-    const edges = getEdges();
-    const connectedEdges = getConnectedEdges(nodes, edges);
-    
-    // Get all nodes that are agents and are connected in the flow
-    const selectedAgents = new Set<string>();
-    
-    // First, collect all the target node IDs from connected edges
-    const connectedNodeIds = new Set<string>();
-    connectedEdges.forEach(edge => {
-      if (edge.source === id) {
-        connectedNodeIds.add(edge.target);
-      }
-    });
-    
-    // Then filter for nodes that are agents
-    nodes.forEach(node => {
-      if (node.type === 'agent-node' && connectedNodeIds.has(node.id)) {
-        selectedAgents.add(node.id);
-      }
-    });
-
-    // Collect agent models from connected agent nodes
-    const agentModels = [];
-    const allAgentModels = getAllAgentModels(flowId);
-    for (const agentId of selectedAgents) {
-      const model = allAgentModels[agentId];
-      if (model) {
-        agentModels.push({
-          agent_id: agentId,
-          model_name: model.model_name,
-          model_provider: model.provider as any
-        });
-      }
-    }
-    
-    // Convert tickers to array    
-    const tickerList = tickers.split(',').map(t => t.trim());
-        
-    // Use the flow connection hook to run the flow
-    runFlow({
-      tickers: tickerList,
-      selected_agents: Array.from(selectedAgents),
-      agent_models: agentModels,
-      // Keep global model for backwards compatibility (will be removed later)
-      model_name: selectedModel?.model_name || undefined,
-      model_provider: selectedModel?.provider as any || undefined,
-      start_date: startDate,
-      end_date: endDate,
-      initial_cash: parseFloat(initialCash) || 100000,
-    });
-  };
-
-  // Determine if we're processing (connecting, connected, or any agents running)
-  const showAsProcessing = isConnecting || isConnected || isProcessing;
+  // Get connected agent IDs
+  const { connectedAgentIds } = useOutputNodeConnection(id);
 
   return (
-    <TooltipProvider>
+    <>
       <NodeShell
         id={id}
         selected={selected}
         isConnectable={isConnectable}
         icon={<Brain className="h-5 w-5" />}
-        name={data.name || "Portfolio Manager"}
+        iconColor={getStatusColor(status)}
+        name={data.name || 'Portfolio Manager'}
         description={data.description}
-        hasLeftHandle={false}
+        hasRightHandle={false}
+        status={status}
       >
         <CardContent className="p-0">
           <div className="border-t border-border p-3">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="text-subtitle text-primary flex items-center gap-1">
-                  <Tooltip delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <span>Tickers</span>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      You can add multiple tickers using commas (AAPL,NVDA,TSLA)
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter tickers"
-                    value={tickers}
-                    onChange={handleTickersChange}
-                  />
-                  <Button 
-                    size="icon" 
-                    variant="secondary"
-                    className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
-                    title={showAsProcessing ? "Stop" : `Run (${formatKeyboardShortcut('↵')})`}
-                    onClick={showAsProcessing ? handleStop : handlePlay}
-                    disabled={!canRunHedgeFund && !showAsProcessing}
+            <div className="flex flex-col gap-2">
+              <div className="text-subtitle text-primary flex items-center gap-1">
+                Status
+              </div>
+
+              <div
+                className={cn(
+                  'text-foreground text-xs rounded p-2 border border-border',
+                  isInProgress ? 'gradient-animation' : getStatusColor(status)
+                )}
+              >
+                <span className="capitalize">
+                  {status.toLowerCase().replace(/_/g, ' ')}
+                </span>
+              </div>
+              
+              <div className='flex flex-col gap-2'>
+                {outputNodeData && (
+                  <Button
+                    size="sm"
+                    onClick={() => setIsDialogOpen(true)}
                   >
-                    {showAsProcessing ? (
-                      <Square className="h-3.5 w-3.5" />
-                    ) : (
-                      <Play className="h-3.5 w-3.5" />
-                    )}
+                    View Investment Report
                   </Button>
-                </div>
+                )}
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-subtitle text-primary flex items-center gap-1">
-                  Initial Cash
-                </div>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-                    $
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="100,000"
-                    value={formatCurrency(initialCash)}
-                    onChange={handleInitialCashChange}
-                    className="pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-subtitle text-primary flex items-center gap-1">
-                  Model
-                </div>
-                <ModelSelector
-                  models={availableModels}
-                  value={selectedModel?.model_name || ""}
-                  onChange={setSelectedModel}
-                  placeholder="Select a model..."
-                />
-              </div>
+
               <Accordion type="single" collapsible>
                 <AccordionItem value="advanced" className="border-none">
                   <AccordionTrigger className="!text-subtitle text-primary">
                     Advanced
                   </AccordionTrigger>
                   <AccordionContent className="pt-2">
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-2">
-                        <div className="text-subtitle text-primary flex items-center gap-1">
-                          End Date
-                        </div>
-                        <Input
-                          type="date"
-                          value={endDate}
-                          onChange={handleEndDateChange}
-                        />
+                    <div className="flex flex-col gap-2">
+                      <div className="text-subtitle text-primary flex items-center gap-1">
+                        Model
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="text-subtitle text-primary flex items-center gap-1">
-                          Start Date
-                        </div>
-                        <Input
-                          type="date"
-                          value={startDate}
-                          onChange={handleStartDateChange}
-                        />
-                      </div>
+                      <ModelSelector
+                        models={availableModels}
+                        value={selectedModel?.model_name || ''}
+                        onChange={handleModelChange}
+                        placeholder="Auto"
+                      />
+                      {selectedModel && (
+                        <button
+                          onClick={handleUseGlobalModel}
+                          className="text-subtitle text-primary hover:text-foreground transition-colors text-left"
+                        >
+                          Reset to Auto
+                        </button>
+                      )}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
             </div>
           </div>
+          <InvestmentReportDialog
+            isOpen={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            outputNodeData={outputNodeData}
+            connectedAgentIds={connectedAgentIds}
+          />
         </CardContent>
       </NodeShell>
-    </TooltipProvider>
+    </>
   );
 }

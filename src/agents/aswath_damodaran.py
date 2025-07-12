@@ -23,7 +23,7 @@ class AswathDamodaranSignal(BaseModel):
     reasoning: str
 
 
-def aswath_damodaran_agent(state: AgentState):
+def aswath_damodaran_agent(state: AgentState, agent_id: str = "aswath_damodaran_agent"):
     """
     Analyze US equities through Aswath Damodaran's intrinsic-value lens:
       • Cost of Equity via CAPM (risk-free + β·ERP)
@@ -41,10 +41,10 @@ def aswath_damodaran_agent(state: AgentState):
 
     for ticker in tickers:
         # ─── Fetch core data ────────────────────────────────────────────────────
-        progress.update_status("aswath_damodaran_agent", ticker, "Fetching financial metrics")
+        progress.update_status(agent_id, ticker, "Fetching financial metrics")
         metrics = get_financial_metrics(ticker, end_date, period="ttm", limit=5)
 
-        progress.update_status("aswath_damodaran_agent", ticker, "Fetching financial line items")
+        progress.update_status(agent_id, ticker, "Fetching financial line items")
         line_items = search_line_items(
             ticker,
             [
@@ -60,20 +60,20 @@ def aswath_damodaran_agent(state: AgentState):
             end_date,
         )
 
-        progress.update_status("aswath_damodaran_agent", ticker, "Getting market cap")
+        progress.update_status(agent_id, ticker, "Getting market cap")
         market_cap = get_market_cap(ticker, end_date)
 
         # ─── Analyses ───────────────────────────────────────────────────────────
-        progress.update_status("aswath_damodaran_agent", ticker, "Analyzing growth and reinvestment")
+        progress.update_status(agent_id, ticker, "Analyzing growth and reinvestment")
         growth_analysis = analyze_growth_and_reinvestment(metrics, line_items)
 
-        progress.update_status("aswath_damodaran_agent", ticker, "Analyzing risk profile")
+        progress.update_status(agent_id, ticker, "Analyzing risk profile")
         risk_analysis = analyze_risk_profile(metrics, line_items)
 
-        progress.update_status("aswath_damodaran_agent", ticker, "Calculating intrinsic value (DCF)")
+        progress.update_status(agent_id, ticker, "Calculating intrinsic value (DCF)")
         intrinsic_val_analysis = calculate_intrinsic_value_dcf(metrics, line_items, risk_analysis)
 
-        progress.update_status("aswath_damodaran_agent", ticker, "Assessing relative valuation")
+        progress.update_status(agent_id, ticker, "Assessing relative valuation")
         relative_val_analysis = analyze_relative_valuation(metrics)
 
         # ─── Score & margin of safety ──────────────────────────────────────────
@@ -112,25 +112,26 @@ def aswath_damodaran_agent(state: AgentState):
         }
 
         # ─── LLM: craft Damodaran-style narrative ──────────────────────────────
-        progress.update_status("aswath_damodaran_agent", ticker, "Generating Damodaran analysis")
+        progress.update_status(agent_id, ticker, "Generating Damodaran analysis")
         damodaran_output = generate_damodaran_output(
             ticker=ticker,
             analysis_data=analysis_data,
             state=state,
+            agent_id=agent_id,
         )
 
         damodaran_signals[ticker] = damodaran_output.model_dump()
 
-        progress.update_status("aswath_damodaran_agent", ticker, "Done", analysis=damodaran_output.reasoning)
+        progress.update_status(agent_id, ticker, "Done", analysis=damodaran_output.reasoning)
 
     # ─── Push message back to graph state ──────────────────────────────────────
-    message = HumanMessage(content=json.dumps(damodaran_signals), name="aswath_damodaran_agent")
+    message = HumanMessage(content=json.dumps(damodaran_signals), name=agent_id)
 
     if state["metadata"]["show_reasoning"]:
         show_agent_reasoning(damodaran_signals, "Aswath Damodaran Agent")
 
-    state["data"]["analyst_signals"]["aswath_damodaran_agent"] = damodaran_signals
-    progress.update_status("aswath_damodaran_agent", None, "Done")
+    state["data"]["analyst_signals"][agent_id] = damodaran_signals
+    progress.update_status(agent_id, None, "Done")
 
     return {"messages": [message], "data": state["data"]}
 
@@ -360,6 +361,7 @@ def generate_damodaran_output(
     ticker: str,
     analysis_data: dict[str, any],
     state: AgentState,
+    agent_id: str,
 ) -> AswathDamodaranSignal:
     """
     Ask the LLM to channel Prof. Damodaran's analytical style:
@@ -410,7 +412,7 @@ def generate_damodaran_output(
     return call_llm(
         prompt=prompt,
         pydantic_model=AswathDamodaranSignal,
-        agent_name="aswath_damodaran_agent",
+        agent_name=agent_id,
         state=state,
         default_factory=default_signal,
     )

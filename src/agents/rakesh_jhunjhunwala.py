@@ -13,7 +13,7 @@ class RakeshJhunjhunwalaSignal(BaseModel):
     confidence: float
     reasoning: str
 
-def rakesh_jhunjhunwala_agent(state: AgentState):
+def rakesh_jhunjhunwala_agent(state: AgentState, agent_id: str = "rakesh_jhunjhunwala_agent"):
     """Analyzes stocks using Rakesh Jhunjhunwala's principles and LLM reasoning."""
     data = state["data"]
     end_date = data["end_date"]
@@ -26,10 +26,10 @@ def rakesh_jhunjhunwala_agent(state: AgentState):
     for ticker in tickers:
 
         # Core Data
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Fetching financial metrics")
+        progress.update_status(agent_id, ticker, "Fetching financial metrics")
         metrics = get_financial_metrics(ticker, end_date, period="ttm", limit=5)
 
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Fetching financial line items")
+        progress.update_status(agent_id, ticker, "Fetching financial line items")
         financial_line_items = search_line_items(
             ticker,
             [
@@ -50,26 +50,26 @@ def rakesh_jhunjhunwala_agent(state: AgentState):
             end_date,
         )
 
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Getting market cap")
+        progress.update_status(agent_id, ticker, "Getting market cap")
         market_cap = get_market_cap(ticker, end_date)
 
         # ─── Analyses ───────────────────────────────────────────────────────────
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Analyzing growth")
+        progress.update_status(agent_id, ticker, "Analyzing growth")
         growth_analysis = analyze_growth(financial_line_items)
 
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Analyzing profitability")
+        progress.update_status(agent_id, ticker, "Analyzing profitability")
         profitability_analysis = analyze_profitability(financial_line_items)
         
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Analyzing balance sheet")
+        progress.update_status(agent_id, ticker, "Analyzing balance sheet")
         balancesheet_analysis = analyze_balance_sheet(financial_line_items)
         
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Analyzing cash flow")
+        progress.update_status(agent_id, ticker, "Analyzing cash flow")
         cashflow_analysis = analyze_cash_flow(financial_line_items)
         
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Analyzing management actions")
+        progress.update_status(agent_id, ticker, "Analyzing management actions")
         management_analysis = analyze_management_actions(financial_line_items)
         
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Calculating intrinsic value")
+        progress.update_status(agent_id, ticker, "Calculating intrinsic value")
         # Calculate intrinsic value once
         intrinsic_value = calculate_intrinsic_value(financial_line_items, market_cap)
 
@@ -133,25 +133,26 @@ def rakesh_jhunjhunwala_agent(state: AgentState):
         }
 
         # ─── LLM: craft Jhunjhunwala‑style narrative ──────────────────────────────
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Generating Jhunjhunwala analysis")
+        progress.update_status(agent_id, ticker, "Generating Jhunjhunwala analysis")
         jhunjhunwala_output = generate_jhunjhunwala_output(
             ticker=ticker,
             analysis_data=analysis_data[ticker],
             state=state,
+            agent_id=agent_id,
         )
 
         jhunjhunwala_analysis[ticker] = jhunjhunwala_output.model_dump()
 
-        progress.update_status("rakesh_jhunjhunwala_agent", ticker, "Done", analysis=jhunjhunwala_output.reasoning)
+        progress.update_status(agent_id, ticker, "Done", analysis=jhunjhunwala_output.reasoning)
 
     # ─── Push message back to graph state ──────────────────────────────────────
-    message = HumanMessage(content=json.dumps(jhunjhunwala_analysis), name="rakesh_jhunjhunwala_agent")
+    message = HumanMessage(content=json.dumps(jhunjhunwala_analysis), name=agent_id)
 
     if state["metadata"]["show_reasoning"]:
         show_agent_reasoning(jhunjhunwala_analysis, "Rakesh Jhunjhunwala Agent")
 
-    state["data"]["analyst_signals"]["rakesh_jhunjhunwala_agent"] = jhunjhunwala_analysis
-    progress.update_status("rakesh_jhunjhunwala_agent", None, "Done")
+    state["data"]["analyst_signals"][agent_id] = jhunjhunwala_analysis
+    progress.update_status(agent_id, None, "Done")
 
     return {"messages": [message], "data": state["data"]}
 
@@ -642,6 +643,7 @@ def generate_jhunjhunwala_output(
     ticker: str,
     analysis_data: dict[str, any],
     state: AgentState,
+    agent_id: str,
 ) -> RakeshJhunjhunwalaSignal:
     """Get investment decision from LLM with Jhunjhunwala's principles"""
     template = ChatPromptTemplate.from_messages(
@@ -699,6 +701,6 @@ def generate_jhunjhunwala_output(
         prompt=prompt,
         pydantic_model=RakeshJhunjhunwalaSignal,
         state=state,
-        agent_name="rakesh_jhunjhunwala_agent",
+        agent_name=agent_id,
         default_factory=create_default_rakesh_jhunjhunwala_signal,
     )

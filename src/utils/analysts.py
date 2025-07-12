@@ -1,5 +1,6 @@
 """Constants and utilities related to analysts configuration."""
 
+from src.agents import portfolio_manager
 from src.agents.aswath_damodaran import aswath_damodaran_agent
 from src.agents.ben_graham import ben_graham_agent
 from src.agents.bill_ackman import bill_ackman_agent
@@ -23,6 +24,7 @@ ANALYST_CONFIG = {
         "description": "The Dean of Valuation",
         "investing_style": "quantitative_analytical",
         "agent_func": aswath_damodaran_agent,
+        "type": "analyst",
         "order": 0,
     },
     "ben_graham": {
@@ -30,6 +32,7 @@ ANALYST_CONFIG = {
         "description": "The Father of Value Investing",
         "investing_style": "value_investing",
         "agent_func": ben_graham_agent,
+        "type": "analyst",
         "order": 1,
     },
     "bill_ackman": {
@@ -37,6 +40,7 @@ ANALYST_CONFIG = {
         "description": "The Activist Investor",
         "investing_style": "contrarian_activist",
         "agent_func": bill_ackman_agent,
+        "type": "analyst",
         "order": 2,
     },
     "cathie_wood": {
@@ -44,6 +48,7 @@ ANALYST_CONFIG = {
         "description": "The Queen of Growth Investing",
         "investing_style": "growth_investing",
         "agent_func": cathie_wood_agent,
+        "type": "analyst",
         "order": 3,
     },
     "charlie_munger": {
@@ -51,6 +56,7 @@ ANALYST_CONFIG = {
         "description": "The Rational Thinker",
         "investing_style": "value_investing",
         "agent_func": charlie_munger_agent,
+        "type": "analyst",
         "order": 4,
     },
     "michael_burry": {
@@ -58,6 +64,7 @@ ANALYST_CONFIG = {
         "description": "The Big Short Contrarian",
         "investing_style": "contrarian_activist",
         "agent_func": michael_burry_agent,
+        "type": "analyst",
         "order": 5,
     },
     "peter_lynch": {
@@ -65,6 +72,7 @@ ANALYST_CONFIG = {
         "description": "The 10-Bagger Investor",
         "investing_style": "growth_investing",
         "agent_func": peter_lynch_agent,
+        "type": "analyst",
         "order": 6,
     },
     "phil_fisher": {
@@ -72,6 +80,7 @@ ANALYST_CONFIG = {
         "description": "The Scuttlebutt Investor",
         "investing_style": "growth_investing",
         "agent_func": phil_fisher_agent,
+        "type": "analyst",
         "order": 7,
     },
     "rakesh_jhunjhunwala": {
@@ -79,6 +88,7 @@ ANALYST_CONFIG = {
         "description": "The Big Bull Of India",
         "investing_style": "macro_global",
         "agent_func": rakesh_jhunjhunwala_agent,
+        "type": "analyst",
         "order": 8,
     },
     "stanley_druckenmiller": {
@@ -86,6 +96,7 @@ ANALYST_CONFIG = {
         "description": "The Macro Investor",
         "investing_style": "macro_global",
         "agent_func": stanley_druckenmiller_agent,
+        "type": "analyst",
         "order": 9,
     },
     "warren_buffett": {
@@ -93,6 +104,7 @@ ANALYST_CONFIG = {
         "description": "The Oracle of Omaha",
         "investing_style": "value_investing",
         "agent_func": warren_buffett_agent,
+        "type": "analyst",
         "order": 10,
     },
     "technical_analyst": {
@@ -100,6 +112,7 @@ ANALYST_CONFIG = {
         "description": "Chart Pattern Specialist",
         "investing_style": "technical_analysis",
         "agent_func": technical_analyst_agent,
+        "type": "analyst",
         "order": 11,
     },
     "fundamentals_analyst": {
@@ -107,6 +120,7 @@ ANALYST_CONFIG = {
         "description": "Financial Statement Specialist",
         "investing_style": "quantitative_analytical",
         "agent_func": fundamentals_analyst_agent,
+        "type": "analyst",
         "order": 12,
     },
     "sentiment_analyst": {
@@ -114,6 +128,7 @@ ANALYST_CONFIG = {
         "description": "Market Sentiment Specialist",
         "investing_style": "technical_analysis",
         "agent_func": sentiment_analyst_agent,
+        "type": "analyst",
         "order": 13,
     },
     "valuation_analyst": {
@@ -121,6 +136,7 @@ ANALYST_CONFIG = {
         "description": "Company Valuation Specialist",
         "investing_style": "quantitative_analytical",
         "agent_func": valuation_analyst_agent,
+        "type": "analyst",
         "order": 14,
     },
 }

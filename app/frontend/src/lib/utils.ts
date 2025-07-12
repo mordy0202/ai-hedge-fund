@@ -18,7 +18,7 @@ export function formatKeyboardShortcut(key: string): string {
 
 // Provider color utility for consistent styling across components
 export function getProviderColor(provider: string): string {
-  return 'bg-gray-600/20 text-gray-300 border-gray-600/40';
+  return 'bg-gray-600/20 text-primary border-gray-600/40';
   // switch (provider.toLowerCase()) {
   //   case 'anthropic':
   //     return 'bg-orange-600/20 text-orange-300 border-orange-600/40';

@@ -6,9 +6,9 @@ import FlowItem from './flow-item';
 interface FlowItemGroupProps {
   title: string;
   flows: Flow[];
-  onLoadFlow: (flow: Flow) => void;
+  onLoadFlow: (flow: Flow) => Promise<void>;
   onDeleteFlow: (flow: Flow) => Promise<void>;
-  onRefresh: () => void;
+  onRefresh: () => Promise<void>;
   currentFlowId?: number | null;
 }
 
@@ -16,11 +16,11 @@ export function FlowItemGroup({ title, flows, onLoadFlow, onDeleteFlow, onRefres
   const groupId = title.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <AccordionItem value={groupId} className="border-ramp-grey-700">
-      <AccordionTrigger className="px-4 py-2 text-white hover:bg-ramp-grey-700 hover:no-underline">
+    <AccordionItem value={groupId} className="border">
+      <AccordionTrigger className="px-4 py-2 text-primary hover-bg hover:no-underline">
         <div className="flex items-center justify-between w-full">
           <span className="text-xs font-medium">{title}</span>
-          <span className="text-xs text-gray-400">({flows.length})</span>
+          <span className="text-xs text-muted-foreground">({flows.length})</span>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-0 pb-0">
@@ -35,7 +35,7 @@ export function FlowItemGroup({ title, flows, onLoadFlow, onDeleteFlow, onRefres
                 isActive={currentFlowId === flow.id}
               />
               {index < flows.length - 1 && (
-                <Separator className="bg-ramp-grey-700 mx-4" />
+                <Separator className="mx-4" />
               )}
             </div>
           ))}

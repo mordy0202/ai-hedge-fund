@@ -25,7 +25,7 @@ export function ComponentItemGroup({
   
   return (
     <AccordionItem key={name} value={name} className="border-none">
-      <AccordionTrigger className="px-4 py-2 text-sm hover:bg-ramp-grey-700 hover:no-underline">
+      <AccordionTrigger className="px-4 py-2 text-sm hover-bg hover:no-underline">
         <div className="flex items-center gap-2">
           <Icon size={16} className={iconColor} />
           <span className="capitalize">{name}</span>

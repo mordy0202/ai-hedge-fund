@@ -147,7 +147,19 @@ export function useFlowConnection(flowId: string | null) {
   const runFlow = useCallback((
     params: {
       tickers: string[];
-      selected_agents: string[];
+      graph_nodes: Array<{
+        id: string;
+        type?: string;
+        data?: any;
+        position?: { x: number; y: number };
+      }>;
+      graph_edges: Array<{
+        id: string;
+        source: string;
+        target: string;
+        type?: string;
+        data?: any;
+      }>;
       agent_models?: any[];
       start_date?: string;
       end_date?: string;

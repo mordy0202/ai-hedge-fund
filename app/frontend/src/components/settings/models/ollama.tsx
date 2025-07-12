@@ -503,10 +503,10 @@ export function OllamaSettings() {
   }, [pollIntervals]);
 
   const getStatusIcon = () => {
-    if (!ollamaStatus) return <RefreshCw className="h-4 w-4 animate-spin text-gray-400" />;
-    if (!ollamaStatus.installed) return <AlertTriangle className="h-4 w-4 text-gray-400" />;
-    if (!ollamaStatus.running) return <Server className="h-4 w-4 text-gray-400" />;
-    return <CheckCircle className="h-4 w-4 text-gray-300" />;
+    if (!ollamaStatus) return <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />;
+    if (!ollamaStatus.installed) return <AlertTriangle className="h-4 w-4 text-muted-foreground" />;
+    if (!ollamaStatus.running) return <Server className="h-4 w-4 text-muted-foreground" />;
+    return <CheckCircle className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getStatusText = () => {
@@ -565,8 +565,8 @@ export function OllamaSettings() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-100 dark:text-gray-100 mb-2">Ollama</h3>
-          <p className="text-sm text-gray-400 dark:text-gray-400">
+          <h3 className="text-lg font-semibold text-primary mb-2">Ollama</h3>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Manage local AI models with Ollama for enhanced privacy and performance.
           </p>
         </div>
@@ -580,7 +580,7 @@ export function OllamaSettings() {
             size="sm"
             onClick={refreshStatus}
             disabled={loading}
-            className="border-gray-600/40 bg-gray-600/10 text-gray-300 hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-gray-200"
+            className="border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>
@@ -602,16 +602,16 @@ export function OllamaSettings() {
       {!ollamaStatus?.installed && (
         <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-gray-400 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
-              <h4 className="font-medium text-gray-300">Ollama Not Installed</h4>
-              <p className="text-sm text-gray-400 mt-1">
+              <h4 className="font-medium text-muted-foreground">Ollama Not Installed</h4>
+              <p className="text-sm text-muted-foreground mt-1">
                 Install Ollama to use local AI models. Visit{' '}
                 <a 
                   href="https://ollama.com" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="underline hover:no-underline text-gray-300"
+                  className="underline hover:no-underline text-muted-foreground"
                 >
                   ollama.com
                 </a>{' '}
@@ -625,15 +625,15 @@ export function OllamaSettings() {
       {ollamaStatus?.installed && !ollamaStatus.running && (
         <div className="flex items-center justify-between bg-gray-700/20 border border-gray-600/30 rounded-lg p-4">
           <div>
-            <h4 className="font-medium text-gray-300">Ollama Server</h4>
-            <p className="text-sm text-gray-400">
+            <h4 className="font-medium text-primary">Ollama Server</h4>
+            <p className="text-sm text-primary">
               Ollama is installed but not currently running.
             </p>
           </div>
           <Button
             onClick={startOllamaServer}
             disabled={actionLoading === 'start-server'}
-            className="flex items-center gap-2 border-gray-600/40 bg-gray-600/10 text-gray-300 hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-gray-200"
+            className="flex items-center gap-2 border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
           >
             <Play className="h-4 w-4" />
             {actionLoading === 'start-server' ? 'Starting...' : 'Start Server'}
@@ -644,12 +644,12 @@ export function OllamaSettings() {
       {ollamaStatus?.running && (
         <div className="flex items-center justify-between bg-gray-700/20 border border-gray-600/30 rounded-lg p-4">
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-gray-300" />
+            <CheckCircle className="h-5 w-5 text-primary" />
             <div>
-              <span className="font-medium text-gray-200">
+              <span className="font-medium text-primary">
                 Ollama Server Running
               </span>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Server available at {ollamaStatus.server_url}
               </p>
             </div>
@@ -658,7 +658,7 @@ export function OllamaSettings() {
             variant="outline"
             onClick={stopOllamaServer}
             disabled={actionLoading === 'stop-server'}
-            className="flex items-center gap-2 border-gray-600/40 bg-gray-600/10 text-gray-300 hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-gray-200"
+            className="flex items-center gap-2 border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
           >
             <Square className="h-4 w-4" />
             {actionLoading === 'stop-server' ? 'Stopping...' : 'Disconnect'}
@@ -669,8 +669,8 @@ export function OllamaSettings() {
       {ollamaStatus?.running && (
         <div className="space-y-2">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-gray-100">Available Models</h3>
-            <span className="text-xs text-gray-400">
+            <h3 className="font-medium text-primary">Available Models</h3>
+            <span className="text-xs text-muted-foreground">
               {ollamaStatus.available_models.length} downloaded
             </span>
           </div>
@@ -680,15 +680,15 @@ export function OllamaSettings() {
             <div key={`download-${modelName}`} className="bg-gray-700/30 rounded-md px-3 py-3 border border-gray-600/40">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm text-gray-200">
+                  <span className="font-medium text-sm text-primary">
                     {recommendedModels.find(m => m.model_name === modelName)?.display_name || modelName}
                   </span>
                   <Badge className={cn(
                     "text-xs border",
                     progress.status === 'downloading' && "bg-blue-600/30 text-primary border-blue-600/40",
-                    progress.status === 'completed' && "bg-green-600/30 text-green-300 border-green-600/40",
-                    progress.status === 'error' && "bg-red-600/30 text-red-300 border-red-600/40",
-                    progress.status === 'cancelled' && "bg-gray-600/30 text-gray-300 border-gray-600/40"
+                    progress.status === 'completed' && "bg-green-600/30 text-green-500 border-green-600/40",
+                    progress.status === 'error' && "bg-red-600/30 text-red-500 border-red-600/40",
+                    progress.status === 'cancelled' && "bg-gray-600/30 text-gray-primary border-gray-600/40"
                   )}>
                     {progress.status === 'downloading' && 'Downloading'}
                     {progress.status === 'completed' && 'Completed'}
@@ -702,7 +702,7 @@ export function OllamaSettings() {
                   size="sm"
                   onClick={() => cancelDownload(modelName)}
                   disabled={cancellingDownloads.has(modelName) || ['completed', 'error', 'cancelled'].includes(progress.status)}
-                  className="text-gray-400 hover:text-gray-300 h-6 w-6 p-0"
+                  className="text-muted-foreground hover:text-primary h-6 w-6 p-0"
                 >
                   {cancellingDownloads.has(modelName) ? (
                     <RefreshCw className="h-3 w-3 animate-spin" />
@@ -714,7 +714,7 @@ export function OllamaSettings() {
               
               {/* Progress bar */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-gray-400">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{progress.phase || progress.status}</span>
                   <span>{progress.percentage ? `${progress.percentage.toFixed(1)}%` : '...'}</span>
                 </div>
@@ -725,12 +725,12 @@ export function OllamaSettings() {
                   />
                 </div>
                 {progress.bytes_downloaded && progress.total_bytes && (
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-muted-foreground">
                     {formatBytes(progress.bytes_downloaded)} / {formatBytes(progress.total_bytes)}
                   </div>
                 )}
                 {progress.message && (
-                  <div className="text-xs text-gray-400 truncate">{progress.message}</div>
+                  <div className="text-xs text-muted-foreground truncate">{progress.message}</div>
                 )}
               </div>
             </div>
@@ -745,9 +745,9 @@ export function OllamaSettings() {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm truncate text-gray-200">{model.display_name}</span>
+                      <span className="font-medium text-sm truncate text-primary">{model.display_name}</span>
                       {model.model_name !== model.display_name && (
-                        <span className="font-mono text-xs text-gray-400">
+                        <span className="font-mono text-xs text-muted-foreground">
                           {model.model_name}
                         </span>
                       )}
@@ -768,7 +768,7 @@ export function OllamaSettings() {
                             });
                           }}
                           disabled={actionLoading === `delete-${model.model_name}`}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-300 h-6 w-6 p-0"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary h-6 w-6 p-0"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -780,7 +780,7 @@ export function OllamaSettings() {
                           variant="outline"
                           size="sm"
                           onClick={() => downloadModelWithProgress(model.model_name)}
-                          className="flex items-center gap-2 h-7 border-gray-600/40 bg-gray-600/10 text-gray-300 hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-gray-200"
+                          className="flex items-center gap-2 h-7 border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
                         >
                           <Download className="h-3 w-3" />
                           Download
@@ -792,7 +792,7 @@ export function OllamaSettings() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No models available</p>
             </div>
@@ -813,7 +813,7 @@ export function OllamaSettings() {
             <DialogDescription>
               Are you sure you want to delete <strong>{deleteConfirmation.displayName}</strong>?
               <br />
-              <span className="text-sm text-gray-400 mt-1 block">
+              <span className="text-sm text-muted-foreground mt-1 block">
                 Model: {deleteConfirmation.modelName}
               </span>
               <br />
@@ -848,13 +848,13 @@ export function OllamaSettings() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
               Cancel Download
             </DialogTitle>
             <DialogDescription>
               Are you sure you want to cancel the download of <strong>{cancelConfirmation.displayName}</strong>?
               <br />
-              <span className="text-sm text-gray-400 mt-1 block">
+              <span className="text-sm text-muted-foreground mt-1 block">
                 Model: {cancelConfirmation.modelName}
               </span>
               <br />

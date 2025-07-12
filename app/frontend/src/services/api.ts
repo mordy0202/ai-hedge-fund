@@ -1,6 +1,7 @@
 import { NodeStatus, OutputNodeData, useNodeContext } from '@/contexts/node-context';
 import { Agent } from '@/data/agents';
 import { LanguageModel } from '@/data/models';
+import { extractBaseAgentKey } from '@/data/node-mappings';
 import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import { ModelProvider } from '@/services/types';
 
@@ -10,9 +11,25 @@ interface AgentModelConfig {
   model_provider?: ModelProvider;
 }
 
+interface GraphNode {
+  id: string;
+  type?: string;
+  data?: any;
+  position?: { x: number; y: number };
+}
+
+interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type?: string;
+  data?: any;
+}
+
 interface HedgeFundRequest {
   tickers: string[];
-  selected_agents: string[];
+  graph_nodes: GraphNode[];
+  graph_edges: GraphEdge[];
   agent_models?: AgentModelConfig[];
   end_date?: string;
   start_date?: string;
@@ -109,6 +126,12 @@ export const api = {
       params.tickers = (params.tickers as unknown as string).split(',').map(t => t.trim());
     }
 
+    // Helper function to get agent IDs from graph structure
+    const getAgentIds = () => params.graph_nodes.map(node => node.id);
+
+    // Pass the unique node IDs directly to the backend
+    const backendParams = params;
+
     // For SSE connections with FastAPI, we need to use POST
     // First, create the controller
     const controller = new AbortController();
@@ -120,7 +143,7 @@ export const api = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify(backendParams),
       signal,
     })
     .then(response => {
@@ -173,7 +196,6 @@ export const api = {
                   switch (eventType) {
                     case 'start':
                       // Reset all nodes at the start of a new run
-                      console.log(`[API] Flow ${flowId}: Starting new run`);
                       nodeContext.resetAllNodes(flowId);
                       break;
                     case 'progress':
@@ -183,13 +205,16 @@ export const api = {
                         if (eventData.status === 'Done') {
                           nodeStatus = 'COMPLETE';
                         }
-                        // Use the agent name as the node ID
-                        const agentId = eventData.agent.replace('_agent', '');
+                        // Map the backend agent name to the unique node ID
+                        const baseAgentKey = eventData.agent.replace('_agent', '');
                         
-                        console.log(`[API] Flow ${flowId}: Progress for ${agentId} (${eventData.ticker}): ${eventData.status}`);
-                        
+                        // Find the unique node ID that corresponds to this base agent key
+                        const uniqueNodeId = getAgentIds().find(id => 
+                          extractBaseAgentKey(id) === baseAgentKey
+                        ) || baseAgentKey;
+                                                
                         // Use the enhanced API to update both status and additional data
-                        nodeContext.updateAgentNode(flowId, agentId, {
+                        nodeContext.updateAgentNode(flowId, uniqueNodeId, {
                           status: nodeStatus,
                           ticker: eventData.ticker,
                           message: eventData.status,
@@ -199,13 +224,12 @@ export const api = {
                       }
                       break;
                     case 'complete':
-                      console.log(`[API] Flow ${flowId}: Run completed`);
                       // Store the complete event data in the node context
                       if (eventData.data) {
                         nodeContext.setOutputNodeData(flowId, eventData.data as OutputNodeData);
                       }
                       // Mark all agents as complete when the whole process is done
-                      nodeContext.updateAgentNodes(flowId, params.selected_agents || [], 'COMPLETE');
+                      nodeContext.updateAgentNodes(flowId, getAgentIds(), 'COMPLETE');
                       // Also update the output node
                       nodeContext.updateAgentNode(flowId, 'output', {
                         status: 'COMPLETE',
@@ -231,9 +255,8 @@ export const api = {
                       }
                       break;
                     case 'error':
-                      console.error(`[API] Flow ${flowId}: Error occurred`, eventData);
                       // Mark all agents as error when there's an error  
-                      nodeContext.updateAgentNodes(flowId, params.selected_agents || [], 'ERROR');
+                      nodeContext.updateAgentNodes(flowId, getAgentIds(), 'ERROR');
                       
                       // Update flow connection state to error
                       if (flowId) {
@@ -259,7 +282,6 @@ export const api = {
           if (flowId) {
             const currentConnection = flowConnectionManager.getConnection(flowId);
             if (currentConnection.state === 'connected') {
-              console.warn(`[API] Flow ${flowId}: SSE stream ended without a 'complete' or 'error' event. Assuming completion.`);
               flowConnectionManager.setConnection(flowId, {
                 state: 'completed',
                 abortController: null,
@@ -270,8 +292,7 @@ export const api = {
           if (error.name !== 'AbortError') {
             console.error('Error reading SSE stream:', error);
             // Mark all agents as error when there's a connection error
-            const agentIds = params.selected_agents || [];
-            nodeContext.updateAgentNodes(flowId, agentIds, 'ERROR');
+            nodeContext.updateAgentNodes(flowId, getAgentIds(), 'ERROR');
             
             // Update flow connection state to error
             if (flowId) {
@@ -292,8 +313,7 @@ export const api = {
       if (error.name !== 'AbortError') {
         console.error('SSE connection error:', error);
         // Mark all agents as error when there's a connection error
-        const agentIds = params.selected_agents || [];
-        nodeContext.updateAgentNodes(flowId, agentIds, 'ERROR');
+        nodeContext.updateAgentNodes(flowId, getAgentIds(), 'ERROR');
         
         // Update flow connection state to error
         if (flowId) {

@@ -23,7 +23,7 @@ class StanleyDruckenmillerSignal(BaseModel):
     reasoning: str
 
 
-def stanley_druckenmiller_agent(state: AgentState):
+def stanley_druckenmiller_agent(state: AgentState, agent_id: str = "stanley_druckenmiller_agent"):
     """
     Analyzes stocks using Stanley Druckenmiller's investing principles:
       - Seeking asymmetric risk-reward opportunities
@@ -42,10 +42,10 @@ def stanley_druckenmiller_agent(state: AgentState):
     druck_analysis = {}
 
     for ticker in tickers:
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Fetching financial metrics")
+        progress.update_status(agent_id, ticker, "Fetching financial metrics")
         metrics = get_financial_metrics(ticker, end_date, period="annual", limit=5)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Gathering financial line items")
+        progress.update_status(agent_id, ticker, "Gathering financial line items")
         # Include relevant line items for Stan Druckenmiller's approach:
         #   - Growth & momentum: revenue, EPS, operating_income, ...
         #   - Valuation: net_income, free_cash_flow, ebit, ebitda
@@ -74,31 +74,31 @@ def stanley_druckenmiller_agent(state: AgentState):
             limit=5,
         )
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Getting market cap")
+        progress.update_status(agent_id, ticker, "Getting market cap")
         market_cap = get_market_cap(ticker, end_date)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Fetching insider trades")
+        progress.update_status(agent_id, ticker, "Fetching insider trades")
         insider_trades = get_insider_trades(ticker, end_date, start_date=None, limit=50)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Fetching company news")
+        progress.update_status(agent_id, ticker, "Fetching company news")
         company_news = get_company_news(ticker, end_date, start_date=None, limit=50)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Fetching recent price data for momentum")
+        progress.update_status(agent_id, ticker, "Fetching recent price data for momentum")
         prices = get_prices(ticker, start_date=start_date, end_date=end_date)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Analyzing growth & momentum")
+        progress.update_status(agent_id, ticker, "Analyzing growth & momentum")
         growth_momentum_analysis = analyze_growth_and_momentum(financial_line_items, prices)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Analyzing sentiment")
+        progress.update_status(agent_id, ticker, "Analyzing sentiment")
         sentiment_analysis = analyze_sentiment(company_news)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Analyzing insider activity")
+        progress.update_status(agent_id, ticker, "Analyzing insider activity")
         insider_activity = analyze_insider_activity(insider_trades)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Analyzing risk-reward")
+        progress.update_status(agent_id, ticker, "Analyzing risk-reward")
         risk_reward_analysis = analyze_risk_reward(financial_line_items, prices)
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Performing Druckenmiller-style valuation")
+        progress.update_status(agent_id, ticker, "Performing Druckenmiller-style valuation")
         valuation_analysis = analyze_druckenmiller_valuation(financial_line_items, market_cap)
 
         # Combine partial scores with weights typical for Druckenmiller:
@@ -133,11 +133,12 @@ def stanley_druckenmiller_agent(state: AgentState):
             "valuation_analysis": valuation_analysis,
         }
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Generating Stanley Druckenmiller analysis")
+        progress.update_status(agent_id, ticker, "Generating Stanley Druckenmiller analysis")
         druck_output = generate_druckenmiller_output(
             ticker=ticker,
             analysis_data=analysis_data,
             state=state,
+            agent_id=agent_id,
         )
 
         druck_analysis[ticker] = {
@@ -146,17 +147,17 @@ def stanley_druckenmiller_agent(state: AgentState):
             "reasoning": druck_output.reasoning,
         }
 
-        progress.update_status("stanley_druckenmiller_agent", ticker, "Done", analysis=druck_output.reasoning)
+        progress.update_status(agent_id, ticker, "Done", analysis=druck_output.reasoning)
 
     # Wrap results in a single message
-    message = HumanMessage(content=json.dumps(druck_analysis), name="stanley_druckenmiller_agent")
+    message = HumanMessage(content=json.dumps(druck_analysis), name=agent_id)
 
     if state["metadata"].get("show_reasoning"):
         show_agent_reasoning(druck_analysis, "Stanley Druckenmiller Agent")
 
-    state["data"]["analyst_signals"]["stanley_druckenmiller_agent"] = druck_analysis
+    state["data"]["analyst_signals"][agent_id] = druck_analysis
 
-    progress.update_status("stanley_druckenmiller_agent", None, "Done")
+    progress.update_status(agent_id, None, "Done")
     
     return {"messages": [message], "data": state["data"]}
 
@@ -524,6 +525,7 @@ def generate_druckenmiller_output(
     ticker: str,
     analysis_data: dict[str, any],
     state: AgentState,
+    agent_id: str,
 ) -> StanleyDruckenmillerSignal:
     """
     Generates a JSON signal in the style of Stanley Druckenmiller.
@@ -589,7 +591,7 @@ def generate_druckenmiller_output(
     return call_llm(
         prompt=prompt,
         pydantic_model=StanleyDruckenmillerSignal,
-        agent_name="stanley_druckenmiller_agent",
+        agent_name=agent_id,
         state=state,
         default_factory=create_default_signal,
     )

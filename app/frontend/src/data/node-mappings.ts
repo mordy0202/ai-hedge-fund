@@ -9,11 +9,41 @@ export interface NodeTypeDefinition {
 // Cache for node type definitions to avoid repeated API calls
 let nodeTypeDefinitionsCache: Record<string, NodeTypeDefinition> | null = null;
 
+// Utility function to generate unique short ID suffix
+const generateUniqueIdSuffix = (): string => {
+  // Generate a short random ID (6 characters)
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+/**
+ * Extract the base agent key from a unique node ID
+ * @param uniqueId The unique node ID with suffix (e.g., "warren_buffett_abc123")
+ * @returns The base agent key (e.g., "warren_buffett")
+ */
+export const extractBaseAgentKey = (uniqueId: string): string => {
+  // For agent nodes, remove the last underscore and 6-character suffix
+  // For other nodes like portfolio_manager, also remove the suffix
+  const parts = uniqueId.split('_');
+  if (parts.length >= 2) {
+    const lastPart = parts[parts.length - 1];
+    // If the last part is a 6-character alphanumeric string, it's likely our suffix
+    if (lastPart.length === 6 && /^[a-z0-9]+$/.test(lastPart)) {
+      return parts.slice(0, -1).join('_');
+    }
+  }
+  return uniqueId; // Return original if no suffix pattern found
+};
+
 // Define base node creation functions (non-agent nodes)
 const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
   "Portfolio Manager": {
     createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `portfolio-manager-node`,
+      id: `portfolio_manager_${generateUniqueIdSuffix()}`,
       type: "portfolio-manager-node",
       position,
       data: {
@@ -23,26 +53,14 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       },
     }),
   },
-  "JSON Output": {
+  "Stock Tickers": {
     createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `json-output-node`,
-      type: "json-output-node",
+      id: `stock-tickers-node_${generateUniqueIdSuffix()}`,
+      type: "stock-tickers-node",
       position,
       data: {
-        name: "JSON Output",
-        description: "End Node",
-        status: "Idle",
-      },
-    }),
-  },
-  "Investment Report": {
-    createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `investment-report-node`,
-      type: "investment-report-node",
-      position,
-      data: {
-        name: "Investment Report",
-        description: "End Node",
+        name: "Stock Tickers",
+        description: "Start Node",
         status: "Idle",
       },
     }),
@@ -63,7 +81,7 @@ const getNodeTypeDefinitions = async (): Promise<Record<string, NodeTypeDefiniti
   const agentNodeDefinitions = agents.reduce((acc: Record<string, NodeTypeDefinition>, agent: Agent) => {
     acc[agent.display_name] = {
       createNode: (position: { x: number, y: number }): AppNode => ({
-        id: agent.key,
+        id: `${agent.key}_${generateUniqueIdSuffix()}`,
         type: "agent-node",
         position,
         data: {

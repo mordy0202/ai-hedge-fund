@@ -47,8 +47,8 @@ export function Models({ className }: ModelsProps) {
   return (
     <div className={cn("space-y-6", className)}>
       <div>
-        <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-100 mb-2">Models</h2>
-        <p className="text-sm text-gray-400 dark:text-gray-400">
+        <h2 className="text-xl font-semibold text-primary mb-2">Models</h2>
+        <p className="text-sm text-muted-foreground">
           Manage your AI models from local and cloud providers.
         </p>
       </div>
@@ -68,16 +68,16 @@ export function Models({ className }: ModelsProps) {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors",
                 isSelected 
-                  ? "bg-gray-600/40 text-gray-100 shadow-sm" 
+                  ? "bg-gray-600/40 text-primary shadow-sm" 
                   : isDisabled
-                  ? "text-gray-500 cursor-not-allowed"
-                  : "text-gray-300 hover:text-gray-100 hover:bg-gray-700/30"
+                  ? "text-muted-foreground cursor-not-allowed"
+                  : "text-primary hover:text-gray-100 hover:bg-gray-700/30"
               )}
             >
               <Icon className="h-4 w-4" />
               {section.label}
               {isDisabled && (
-                <span className="text-xs bg-gray-600/30 text-gray-400 px-1.5 py-0.5 rounded">
+                <span className="text-xs bg-gray-600/30 text-muted-foreground px-1.5 py-0.5 rounded">
                   Soon
                 </span>
               )}

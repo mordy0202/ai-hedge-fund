@@ -108,8 +108,8 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
         className={cn(
           "group flex items-center justify-between px-4 py-3 transition-colors cursor-pointer",
           isActive 
-            ? "border-l-2 border-blue-400" 
-            : "hover:bg-ramp-grey-700"
+            ? "border-l-2 border-blue-500" 
+            : "hover-bg"
         )}
         onClick={handleLoadFlow}
         onContextMenu={handleContextMenu}
@@ -118,19 +118,19 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
           <div className="flex items-center justify-between gap-2 mb-1">
             <div className="flex items-center gap-1 min-w-0">
               {flow.is_template ? (
-                <Layout size={14} className="text-blue-400 flex-shrink-0" />
+                <Layout size={14} className="text-blue-500 flex-shrink-0" />
               ) : (
                 <FileText size={14} className={cn(
                   "flex-shrink-0",
-                  isActive ? "text-blue-400" : "text-gray-400"
+                  isActive ? "text-blue-500" : "text-muted-foreground"
                 )} />
               )}
               <span
                 className={cn(
                   "text-subtitle font-medium text-left truncate",
                   isActive 
-                    ? "text-blue-300" 
-                    : "text-white"
+                    ? "text-blue-500" 
+                    : "text-primary"
                 )}
                 title={flow.name}
               >
@@ -141,13 +141,13 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
             {/* Active connection indicator - right aligned */}
             {hasActiveConnection && (
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Zap className="h-3 w-3 text-yellow-400 animate-pulse" />
-                <span className="text-xs text-yellow-400 font-medium">Running</span>
+                <Zap className="h-3 w-3 text-yellow-500 animate-pulse" />
+                <span className="text-xs text-yellow-500 font-medium">Running</span>
               </div>
             )}
           </div>
           
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar size={10} />
             <span>{formatDateTime(flow.created_at)}</span>
           </div>
@@ -173,7 +173,7 @@ export default function FlowItem({ flow, onLoadFlow, onDeleteFlow, onRefresh, is
             variant="ghost"
             size="icon"
             onClick={handleMenuClick}
-            className="h-6 w-6 text-gray-400 hover:text-white hover:bg-ramp-grey-600 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 text-muted-foreground hover-item opacity-0 group-hover:opacity-100 transition-opacity rounded"
             title="More options"
           >
             <MoreHorizontal size={14} />

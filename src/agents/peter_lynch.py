@@ -25,7 +25,7 @@ class PeterLynchSignal(BaseModel):
     reasoning: str
 
 
-def peter_lynch_agent(state: AgentState):
+def peter_lynch_agent(state: AgentState, agent_id: str = "peter_lynch_agent"):
     """
     Analyzes stocks using Peter Lynch's investing principles:
       - Invest in what you know (clear, understandable businesses).
@@ -49,10 +49,10 @@ def peter_lynch_agent(state: AgentState):
     lynch_analysis = {}
 
     for ticker in tickers:
-        progress.update_status("peter_lynch_agent", ticker, "Fetching financial metrics")
+        progress.update_status(agent_id, ticker, "Fetching financial metrics")
         metrics = get_financial_metrics(ticker, end_date, period="annual", limit=5)
 
-        progress.update_status("peter_lynch_agent", ticker, "Gathering financial line items")
+        progress.update_status(agent_id, ticker, "Gathering financial line items")
         # Relevant line items for Peter Lynch's approach
         financial_line_items = search_line_items(
             ticker,
@@ -75,32 +75,32 @@ def peter_lynch_agent(state: AgentState):
             limit=5,
         )
 
-        progress.update_status("peter_lynch_agent", ticker, "Getting market cap")
+        progress.update_status(agent_id, ticker, "Getting market cap")
         market_cap = get_market_cap(ticker, end_date)
 
-        progress.update_status("peter_lynch_agent", ticker, "Fetching insider trades")
+        progress.update_status(agent_id, ticker, "Fetching insider trades")
         insider_trades = get_insider_trades(ticker, end_date, start_date=None, limit=50)
 
-        progress.update_status("peter_lynch_agent", ticker, "Fetching company news")
+        progress.update_status(agent_id, ticker, "Fetching company news")
         company_news = get_company_news(ticker, end_date, start_date=None, limit=50)
 
-        progress.update_status("peter_lynch_agent", ticker, "Fetching recent price data for reference")
+        progress.update_status(agent_id, ticker, "Fetching recent price data for reference")
         prices = get_prices(ticker, start_date=start_date, end_date=end_date)
 
         # Perform sub-analyses:
-        progress.update_status("peter_lynch_agent", ticker, "Analyzing growth")
+        progress.update_status(agent_id, ticker, "Analyzing growth")
         growth_analysis = analyze_lynch_growth(financial_line_items)
 
-        progress.update_status("peter_lynch_agent", ticker, "Analyzing fundamentals")
+        progress.update_status(agent_id, ticker, "Analyzing fundamentals")
         fundamentals_analysis = analyze_lynch_fundamentals(financial_line_items)
 
-        progress.update_status("peter_lynch_agent", ticker, "Analyzing valuation (focus on PEG)")
+        progress.update_status(agent_id, ticker, "Analyzing valuation (focus on PEG)")
         valuation_analysis = analyze_lynch_valuation(financial_line_items, market_cap)
 
-        progress.update_status("peter_lynch_agent", ticker, "Analyzing sentiment")
+        progress.update_status(agent_id, ticker, "Analyzing sentiment")
         sentiment_analysis = analyze_sentiment(company_news)
 
-        progress.update_status("peter_lynch_agent", ticker, "Analyzing insider activity")
+        progress.update_status(agent_id, ticker, "Analyzing insider activity")
         insider_activity = analyze_insider_activity(insider_trades)
 
         # Combine partial scores with weights typical for Peter Lynch:
@@ -135,11 +135,12 @@ def peter_lynch_agent(state: AgentState):
             "insider_activity": insider_activity,
         }
 
-        progress.update_status("peter_lynch_agent", ticker, "Generating Peter Lynch analysis")
+        progress.update_status(agent_id, ticker, "Generating Peter Lynch analysis")
         lynch_output = generate_lynch_output(
             ticker=ticker,
             analysis_data=analysis_data[ticker],
             state=state,
+            agent_id=agent_id,
         )
 
         lynch_analysis[ticker] = {
@@ -148,18 +149,18 @@ def peter_lynch_agent(state: AgentState):
             "reasoning": lynch_output.reasoning,
         }
 
-        progress.update_status("peter_lynch_agent", ticker, "Done", analysis=lynch_output.reasoning)
+        progress.update_status(agent_id, ticker, "Done", analysis=lynch_output.reasoning)
 
     # Wrap up results
-    message = HumanMessage(content=json.dumps(lynch_analysis), name="peter_lynch_agent")
+    message = HumanMessage(content=json.dumps(lynch_analysis), name=agent_id)
 
     if state["metadata"].get("show_reasoning"):
         show_agent_reasoning(lynch_analysis, "Peter Lynch Agent")
 
     # Save signals to state
-    state["data"]["analyst_signals"]["peter_lynch_agent"] = lynch_analysis
+    state["data"]["analyst_signals"][agent_id] = lynch_analysis
 
-    progress.update_status("peter_lynch_agent", None, "Done")
+    progress.update_status(agent_id, None, "Done")
 
     return {"messages": [message], "data": state["data"]}
 
@@ -441,6 +442,7 @@ def generate_lynch_output(
     ticker: str,
     analysis_data: dict[str, any],
     state: AgentState,
+    agent_id: str,
 ) -> PeterLynchSignal:
     """
     Generates a final JSON signal in Peter Lynch's voice & style.
@@ -499,7 +501,7 @@ def generate_lynch_output(
     return call_llm(
         prompt=prompt,
         pydantic_model=PeterLynchSignal,
-        agent_name="peter_lynch_agent",
+        agent_name=agent_id,
         state=state,
         default_factory=create_default_signal,
     )

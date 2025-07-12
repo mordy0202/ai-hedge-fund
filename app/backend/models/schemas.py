@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from src.llm.models import ModelProvider
 from enum import Enum
+from app.backend.services.graph import extract_base_agent_key
 
 
 class FlowRunStatus(str, Enum):
@@ -28,9 +29,25 @@ class ErrorResponse(BaseModel):
     error: str | None = None
 
 
+class GraphNode(BaseModel):
+    id: str
+    type: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+    position: Optional[Dict[str, Any]] = None
+
+
+class GraphEdge(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+
+
 class HedgeFundRequest(BaseModel):
     tickers: List[str]
-    selected_agents: List[str]
+    graph_nodes: List[GraphNode]
+    graph_edges: List[GraphEdge]
     agent_models: Optional[List[AgentModelConfig]] = None
     end_date: Optional[str] = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
     start_date: Optional[str] = None
@@ -45,11 +62,20 @@ class HedgeFundRequest(BaseModel):
             return self.start_date
         return (datetime.strptime(self.end_date, "%Y-%m-%d") - timedelta(days=90)).strftime("%Y-%m-%d")
 
+    def get_agent_ids(self) -> List[str]:
+        """Extract agent IDs from graph structure"""
+        return [node.id for node in self.graph_nodes]
+
     def get_agent_model_config(self, agent_id: str) -> tuple[str, ModelProvider]:
         """Get model configuration for a specific agent"""
         if self.agent_models:
+            # Extract base agent key from unique node ID for matching
+            base_agent_key = extract_base_agent_key(agent_id)
+            
             for config in self.agent_models:
-                if config.agent_id == agent_id:
+                # Check both unique node ID and base agent key for matches
+                config_base_key = extract_base_agent_key(config.agent_id)
+                if config.agent_id == agent_id or config_base_key == base_agent_key:
                     return (
                         config.model_name or self.model_name,
                         config.model_provider or self.model_provider

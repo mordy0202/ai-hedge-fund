@@ -11,13 +11,11 @@ interface RightSidebarProps {
   isCollapsed: boolean;
   onCollapse: () => void;
   onExpand: () => void;
-  onToggleCollapse: () => void;
   onWidthChange?: (width: number) => void;
 }
 
 export function RightSidebar({
   isCollapsed,
-  onToggleCollapse,
   onWidthChange,
 }: RightSidebarProps) {
   // Use our custom hooks
@@ -67,15 +65,14 @@ export function RightSidebar({
     <div 
       ref={elementRef}
       className={cn(
-        "h-full bg-panel flex flex-col relative pt-5 border-l border-ramp-grey-700 dark:border-ramp-grey-800",
+        "h-full bg-panel flex flex-col relative pt-5 border-l",
         isCollapsed ? "shadow-lg" : "",
-        isDragging ? "select-none border-l-0" : ""
       )}
       style={{ 
         width: `${width}px`
       }}
     >
-      <ComponentActions onToggleCollapse={onToggleCollapse} />
+      <ComponentActions />
       
       <ComponentList
         componentGroups={componentGroups}

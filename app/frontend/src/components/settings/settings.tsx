@@ -73,8 +73,8 @@ export function Settings({ className }: SettingsProps) {
       <div className="flex w-full max-w-7xl mx-auto">
         {/* Left Navigation Pane */}
         <div className="w-60 bg-panel flex-shrink-0">
-          <div className="p-4 border-b border-gray-700 dark:border-gray-800">
-            <h1 className="text-lg font-semibold text-gray-100 dark:text-gray-100">Settings</h1>
+          <div className="p-4 border-b">
+            <h1 className="text-lg font-semibold text-primary">Settings</h1>
           </div>
           <nav className="p-2">
             {navigationItems.map((item) => {
@@ -87,8 +87,8 @@ export function Settings({ className }: SettingsProps) {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 text-left rounded-md text-sm transition-colors",
                     isSelected 
-                      ? "bg-gray-700 dark:bg-gray-800 text-gray-100 dark:text-gray-100 shadow-sm" 
-                      : "text-gray-300 dark:text-gray-400 hover:text-gray-100 dark:hover:text-gray-100 hover:bg-gray-700/50 dark:hover:bg-gray-800/50"
+                      ? "active-bg text-blue-500" 
+                      : "text-primary hover-item"
                   )}
                 >
                   <Icon className="h-4 w-4 flex-shrink-0" />

@@ -21,7 +21,7 @@ class PortfolioManagerOutput(BaseModel):
 
 
 ##### Portfolio Management Agent #####
-def portfolio_management_agent(state: AgentState):
+def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_manager"):
     """Makes final trading decisions and generates orders for multiple tickers"""
 
     # Get the portfolio and analyst signals
@@ -35,10 +35,17 @@ def portfolio_management_agent(state: AgentState):
     max_shares = {}
     signals_by_ticker = {}
     for ticker in tickers:
-        progress.update_status("portfolio_manager", ticker, "Processing analyst signals")
+        progress.update_status(agent_id, ticker, "Processing analyst signals")
 
         # Get position limits and current prices for the ticker
-        risk_data = analyst_signals.get("risk_management_agent", {}).get(ticker, {})
+        # Find the corresponding risk manager for this portfolio manager
+        if agent_id.startswith("portfolio_manager_"):
+            suffix = agent_id.split('_')[-1]
+            risk_manager_id = f"risk_management_agent_{suffix}"
+        else:
+            risk_manager_id = "risk_management_agent"  # Fallback for legacy
+        
+        risk_data = analyst_signals.get(risk_manager_id, {}).get(ticker, {})
         position_limits[ticker] = risk_data.get("remaining_position_limit", 0)
         current_prices[ticker] = risk_data.get("current_price", 0)
 
@@ -51,11 +58,12 @@ def portfolio_management_agent(state: AgentState):
         # Get signals for the ticker
         ticker_signals = {}
         for agent, signals in analyst_signals.items():
-            if agent != "risk_management_agent" and ticker in signals:
+            # Skip all risk management agents (they have different signal structure)
+            if not agent.startswith("risk_management_agent") and ticker in signals:
                 ticker_signals[agent] = {"signal": signals[ticker]["signal"], "confidence": signals[ticker]["confidence"]}
         signals_by_ticker[ticker] = ticker_signals
 
-    progress.update_status("portfolio_manager", None, "Generating trading decisions")
+    progress.update_status(agent_id, None, "Generating trading decisions")
 
     # Generate the trading decision
     result = generate_trading_decision(
@@ -64,20 +72,21 @@ def portfolio_management_agent(state: AgentState):
         current_prices=current_prices,
         max_shares=max_shares,
         portfolio=portfolio,
+        agent_id=agent_id,
         state=state,
     )
 
     # Create the portfolio management message
     message = HumanMessage(
         content=json.dumps({ticker: decision.model_dump() for ticker, decision in result.decisions.items()}),
-        name="portfolio_manager",
+        name=agent_id,
     )
 
     # Print the decision if the flag is set
     if state["metadata"]["show_reasoning"]:
         show_agent_reasoning({ticker: decision.model_dump() for ticker, decision in result.decisions.items()}, "Portfolio Manager")
 
-    progress.update_status("portfolio_manager", None, "Done")
+    progress.update_status(agent_id, None, "Done")
 
     return {
         "messages": state["messages"] + [message],
@@ -91,6 +100,7 @@ def generate_trading_decision(
     current_prices: dict[str, float],
     max_shares: dict[str, int],
     portfolio: dict[str, float],
+    agent_id: str,
     state: AgentState,
 ) -> PortfolioManagerOutput:
     """Attempts to get a decision from the LLM with retry logic"""
@@ -193,7 +203,7 @@ def generate_trading_decision(
     return call_llm(
         prompt=prompt,
         pydantic_model=PortfolioManagerOutput,
-        agent_name="portfolio_manager",
+        agent_name=agent_id,
         state=state,
         default_factory=create_default_portfolio_output,
     )

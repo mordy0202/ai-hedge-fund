@@ -66,7 +66,7 @@ export function TabBar({ className }: TabBarProps) {
 
   return (
     <div className={cn(
-      "flex items-center bg-panel border-b border-ramp-grey-700 dark:border-ramp-grey-800 overflow-x-auto",
+      "flex items-center bg-panel border-b overflow-x-auto",
       className
     )}>
       <div className="flex items-center min-w-0">
@@ -80,30 +80,55 @@ export function TabBar({ className }: TabBarProps) {
             onDrop={(e) => handleDrop(e, index)}
             onDragEnd={handleDragEnd}
             className={cn(
-              "group relative flex items-center gap-2 px-4 py-2.5 cursor-pointer transition-all duration-150 min-w-0 max-w-52 select-none border-r border-[#333] last:border-r-0",
+              "group relative flex items-center gap-2 px-4 py-2.5 cursor-pointer transition-all duration-150 min-w-0 max-w-52 select-none last:border-r-0",
               // Active tab styling - VSCode style
               activeTabId === tab.id 
-                ? "bg-panel text-[#cccccc] before:absolute before:bottom-0 before:left-0 before:right-0 before:h-0.5 before:bg-[#007acc] before:content-['']" 
-                : "bg-panel text-[#969696] hover:bg-[#1e1e1e] hover:text-[#cccccc]",
+                ? "bg-panel before:absolute before:bottom-0 before:left-0 before:right-0 before:h-0.5 before:content-['']" 
+                : "bg-panel hover:bg-[var(--tab-hover-background)]",
               // Drag states
               draggedIndex === index && "opacity-60 scale-[0.98]",
-              dragOverIndex === index && "bg-[#1e1e1e] ring-1 ring-[#007acc]/30",
+              dragOverIndex === index && "ring-1 ring-[var(--tab-accent)]/30",
               "hover:cursor-grab active:cursor-grabbing"
             )}
+            style={{
+              borderRight: `1px solid var(--tab-border)`,
+              color: activeTabId === tab.id ? 'var(--tab-active-text)' : 'var(--tab-inactive-text)',
+              backgroundColor: dragOverIndex === index ? 'var(--tab-hover-background)' : undefined,
+            }}
+            onMouseEnter={(e) => {
+              if (activeTabId !== tab.id) {
+                e.currentTarget.style.color = 'var(--tab-hover-text)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTabId !== tab.id) {
+                e.currentTarget.style.color = 'var(--tab-inactive-text)';
+              }
+            }}
             onClick={() => setActiveTab(tab.id)}
           >
+            {/* Active tab accent bar */}
+            {activeTabId === tab.id && (
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-0.5"
+                style={{ backgroundColor: 'var(--tab-accent)' }}
+              />
+            )}
+
             {/* Tab Icon */}
             <div className={cn(
               "flex-shrink-0 transition-colors duration-150",
-              activeTabId === tab.id ? "text-[#cccccc]" : "text-[#858585] group-hover:text-[#cccccc]"
-            )}>
+              activeTabId === tab.id ? "text-primary" : ""
+            )}
+            style={{
+              color: activeTabId === tab.id ? 'var(--tab-icon-active)' : 'var(--tab-icon-inactive)'
+            }}>
               {getTabIcon(tab.type)}
             </div>
 
             {/* Tab Title */}
             <span className={cn(
-              "text-[13px] font-normal truncate min-w-0 transition-colors duration-150",
-              activeTabId === tab.id ? "text-[#cccccc]" : "text-[#969696] group-hover:text-[#cccccc]"
+              "text-[13px] font-normal truncate min-w-0 transition-colors duration-150"
             )}>
               {tab.title}
             </span>
@@ -114,10 +139,17 @@ export function TabBar({ className }: TabBarProps) {
               size="sm"
               className={cn(
                 "h-5 w-5 p-0 flex-shrink-0 ml-1 rounded-sm transition-all duration-150",
-                "opacity-0 group-hover:opacity-100 hover:bg-[#464647] hover:text-[#cccccc]",
-                activeTabId === tab.id && "opacity-70 hover:opacity-100",
-                "focus:opacity-100 focus:outline-none focus:ring-1 focus:ring-[#007acc]/50"
+                "opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none",
+                activeTabId === tab.id && "opacity-70 hover:opacity-100"
               )}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--tab-close-hover)';
+                e.currentTarget.style.color = 'var(--tab-hover-text)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'inherit';
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 closeTab(tab.id);
@@ -130,7 +162,7 @@ export function TabBar({ className }: TabBarProps) {
 
             {/* Modified indicator dot for unsaved changes - VSCode style */}
             {/* You can add this when you implement unsaved changes tracking */}
-            {/* <div className="absolute top-1/2 left-1 w-1.5 h-1.5 bg-[#cccccc] rounded-full transform -translate-y-1/2" /> */}
+            {/* <div className="absolute top-1/2 left-1 w-1.5 h-1.5 rounded-full transform -translate-y-1/2" style={{ backgroundColor: 'var(--tab-active-text)' }} /> */}
           </div>
         ))}
       </div>

@@ -29,8 +29,8 @@ export default function ComponentItem({
     <div 
       className={cn(
         "group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-subtitle transition-colors duration-150",
-        isActive ? "bg-ramp-grey-700 text-white" : "text-gray-300",
-        isHovered ? "bg-ramp-grey-700" : "",
+        isActive ? "bg-ramp-grey-700 text-primary" : "text-primary",
+        isHovered ? "hover-bg" : "",
         className
       )}
       onClick={onClick}
@@ -45,7 +45,7 @@ export default function ComponentItem({
       }}
     >
       <div className="flex-shrink-0">
-        <Icon size={16} className={isActive ? "text-white" : "text-gray-400"} />
+        <Icon size={16} className={isActive ? "text-primary" : "text-muted-foreground"} />
       </div>
       <span className="truncate">{label}</span>
       
@@ -54,7 +54,7 @@ export default function ComponentItem({
         <Button
           variant="ghost"
           size="icon"
-          className="h-5 w-5 p-0 hover:bg-transparent hover:text-white text-gray-500"
+          className="h-5 w-5 p-0 hover-bg hover:text-primary text-muted-foreground"
           onClick={handlePlusClick}
           aria-label="Add"
         >
