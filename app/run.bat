@@ -212,7 +212,7 @@ if exist "node_modules" (
         pause
         exit /b 1
     )
-            echo %SUCCESS% Frontend dependencies installed
+    echo %SUCCESS% Frontend dependencies installed
 )
 
 cd ..

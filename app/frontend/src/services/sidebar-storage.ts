@@ -66,7 +66,7 @@ export class SidebarStorageService {
   /**
    * Load left sidebar collapsed state from localStorage
    */
-  static loadLeftSidebarState(defaultValue: boolean = true): boolean {
+  static loadLeftSidebarState(defaultValue: boolean = false): boolean {
     try {
       const saved = localStorage.getItem(this.LEFT_SIDEBAR_KEY);
       if (saved === null) {
@@ -84,7 +84,7 @@ export class SidebarStorageService {
   /**
    * Load right sidebar collapsed state from localStorage
    */
-  static loadRightSidebarState(defaultValue: boolean = true): boolean {
+  static loadRightSidebarState(defaultValue: boolean = false): boolean {
     try {
       const saved = localStorage.getItem(this.RIGHT_SIDEBAR_KEY);
       if (saved === null) {
@@ -120,7 +120,7 @@ export class SidebarStorageService {
   /**
    * Load both sidebar states from localStorage
    */
-  static loadSidebarStates(defaultStates: SidebarStates = { leftCollapsed: true, rightCollapsed: true, bottomCollapsed: true }): SidebarStates {
+  static loadSidebarStates(defaultStates: SidebarStates = { leftCollapsed: false, rightCollapsed: false, bottomCollapsed: true }): SidebarStates {
     return {
       leftCollapsed: this.loadLeftSidebarState(defaultStates.leftCollapsed),
       rightCollapsed: this.loadRightSidebarState(defaultStates.rightCollapsed),
@@ -155,15 +155,48 @@ export class SidebarStorageService {
   }
 
   /**
-   * Clear both sidebar states from localStorage
+   * Clear bottom panel state from localStorage
+   */
+  static clearBottomPanelState(): boolean {
+    try {
+      localStorage.removeItem(this.BOTTOM_PANEL_KEY);
+      return true;
+    } catch (error) {
+      console.error('Failed to clear bottom panel state from localStorage:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Clear all sidebar and panel states from localStorage
    */
   static clearSidebarStates(): boolean {
     try {
       const leftSuccess = this.clearLeftSidebarState();
       const rightSuccess = this.clearRightSidebarState();
-      return leftSuccess && rightSuccess;
+      const bottomSuccess = this.clearBottomPanelState();
+      return leftSuccess && rightSuccess && bottomSuccess;
     } catch (error) {
       console.error('Failed to clear sidebar states from localStorage:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Reset all sidebar and panel states to default values
+   */
+  static resetToDefaults(): boolean {
+    try {
+      // Clear all existing states
+      const cleared = this.clearSidebarStates();
+      
+      if (cleared) {
+        console.log('Successfully reset sidebar states to defaults');
+      }
+      
+      return cleared;
+    } catch (error) {
+      console.error('Failed to reset sidebar states to defaults:', error);
       return false;
     }
   }
