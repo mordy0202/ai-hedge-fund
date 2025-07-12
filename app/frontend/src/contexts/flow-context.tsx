@@ -4,7 +4,7 @@ import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import { clearAllNodeStates, getAllNodeStates, setNodeInternalState, setCurrentFlowId as setNodeStateFlowId } from '@/hooks/use-node-state';
 import { flowService } from '@/services/flow-service';
 import { Flow } from '@/types/flow';
-import { ReactFlowInstance, useReactFlow, XYPosition } from '@xyflow/react';
+import { ReactFlowInstance, useReactFlow, XYPosition, MarkerType } from '@xyflow/react';
 import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 
 interface FlowContextType {
@@ -287,35 +287,38 @@ export function FlowProvider({ children }: FlowProviderProps) {
       
       const validNodes = newNodes.filter((node): node is NonNullable<typeof node> => node !== null);
 
-      // Create edges (async)
-      const newEdges = await Promise.all(
-        multiNodeDefinition.edges.map(async (edgeConfig) => {
-          try {
-            const sourceNodeId = await getNodeIdForComponent(edgeConfig.source);
-            const targetNodeId = await getNodeIdForComponent(edgeConfig.target);
-            
-            if (!sourceNodeId || !targetNodeId) {
-              console.warn(`Could not resolve node IDs for edge: ${edgeConfig.source} -> ${edgeConfig.target}`);
-              return null;
-            }
-            
-            return {
-              id: `${sourceNodeId}-${targetNodeId}`,
-              source: sourceNodeId,
-              target: targetNodeId,
-            };
-          } catch (error) {
-            console.error(`Failed to create edge ${edgeConfig.source} -> ${edgeConfig.target}:`, error);
-            return null;
-          }
-        })
-      );
-      
-      const validEdges = newEdges.filter((edge): edge is NonNullable<typeof edge> => edge !== null);
+      // Create a mapping from component names to actual node IDs
+      const componentNameToNodeId = new Map<string, string>();
+      multiNodeDefinition.nodes.forEach((nodeConfig, index) => {
+        const correspondingNode = validNodes[index];
+        if (correspondingNode) {
+          componentNameToNodeId.set(nodeConfig.componentName, correspondingNode.id);
+        }
+      });
+
+      // Create edges using the actual node IDs
+      const newEdges = multiNodeDefinition.edges.map((edgeConfig) => {
+        const sourceNodeId = componentNameToNodeId.get(edgeConfig.source);
+        const targetNodeId = componentNameToNodeId.get(edgeConfig.target);
+        
+        if (!sourceNodeId || !targetNodeId) {
+          console.warn(`Could not resolve node IDs for edge: ${edgeConfig.source} -> ${edgeConfig.target}`);
+          return null;
+        }
+        
+        return {
+          id: `${sourceNodeId}-${targetNodeId}`,
+          source: sourceNodeId,
+          target: targetNodeId,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+          },
+        };
+      }).filter((edge): edge is NonNullable<typeof edge> => edge !== null);
 
       // Add nodes and edges to flow
       reactFlowInstance.setNodes((nodes) => [...nodes, ...validNodes]);
-      reactFlowInstance.setEdges((edges) => [...edges, ...validEdges]);
+      reactFlowInstance.setEdges((edges) => [...edges, ...newEdges]);
       markAsUnsaved();
       
       // Fit view to show all nodes after a short delay to ensure nodes are rendered
