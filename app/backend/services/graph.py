@@ -116,21 +116,6 @@ def create_graph(graph_nodes: list, graph_edges: list) -> StateGraph:
         risk_manager_id = risk_manager_nodes[portfolio_manager_id]
         graph.add_edge(analyst_id, risk_manager_id)
     
-    # Connect non-portfolio-manager agents to risk management if they don't have outgoing edges
-    # These agents will connect to all risk managers (since we don't know which portfolio manager they're for)
-    orphaned_analysts = []
-    for agent_id in agent_ids:
-        base_agent_key = extract_base_agent_key(agent_id)
-        if (base_agent_key in ANALYST_CONFIG and 
-            base_agent_key != "portfolio_manager" and 
-            agent_id not in nodes_with_outgoing_edges):
-            orphaned_analysts.append(agent_id)
-    
-    # Connect orphaned analysts to all risk managers
-    for agent_id in orphaned_analysts:
-        for risk_manager_id in risk_manager_nodes.values():
-            graph.add_edge(agent_id, risk_manager_id)
-    
     # Connect each risk manager to its corresponding portfolio manager
     for portfolio_manager_id, risk_manager_id in risk_manager_nodes.items():
         graph.add_edge(risk_manager_id, portfolio_manager_id)

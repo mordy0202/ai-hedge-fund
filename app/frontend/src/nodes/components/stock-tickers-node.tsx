@@ -135,13 +135,19 @@ export function StockTickersNode({
   };
 
   const handlePlay = () => {
-    // Get the nodes and edges
-    const nodes = getNodes();
-    const edges = getEdges();
+    // Get the current flow's nodes and edges
+    const allNodes = getNodes();
+    const allEdges = getEdges();
     
     // Filter out non-agent nodes (keep only agent nodes, not the stock tickers node)
-    const agentNodes = nodes.filter(node => node.id !== id);
+    const agentNodes = allNodes.filter(node => node.id !== id);
     
+    // Filter edges to only include connections between nodes that actually exist in current flow
+    const currentNodeIds = new Set(allNodes.map(node => node.id));
+    const validEdges = allEdges.filter(edge => 
+      currentNodeIds.has(edge.source) && currentNodeIds.has(edge.target)
+    );
+
     // Collect agent models from all agent nodes
     const agentModels = [];
     const allAgentModels = getAllAgentModels(flowId);
@@ -169,7 +175,7 @@ export function StockTickersNode({
         data: node.data,
         position: node.position
       })),
-      graph_edges: edges,
+      graph_edges: validEdges,
       agent_models: agentModels,
       // Keep global model for backwards compatibility (will be removed later)
       model_name: selectedModel?.model_name || undefined,
