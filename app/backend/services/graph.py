@@ -33,48 +33,111 @@ def extract_base_agent_key(unique_id: str) -> str:
 
 
 # Helper function to create the agent graph
-def create_graph(selected_agents: list[str]) -> StateGraph:
-    """Create the workflow with selected agents."""
+def create_graph(graph_nodes: list, graph_edges: list) -> StateGraph:
+    """Create the workflow based on the React Flow graph structure."""
     graph = StateGraph(AgentState)
     graph.add_node("start_node", start)
 
     # Get analyst nodes from the configuration
     analyst_nodes = {key: (f"{key}_agent", config["agent_func"]) for key, config in ANALYST_CONFIG.items()}
-
-    # Add selected analyst nodes - iterate directly over selected_agents to handle duplicates
-    for unique_agent_id in selected_agents:
+    
+    # Extract agent IDs from graph structure
+    agent_ids = [node.id for node in graph_nodes]
+    agent_ids_set = set(agent_ids)
+    
+    # Track which nodes are portfolio managers for special handling
+    portfolio_manager_nodes = set()
+    
+    # Add agent nodes
+    for unique_agent_id in agent_ids:
         base_agent_key = extract_base_agent_key(unique_agent_id)
         
-        # Skip if the base agent key is not in our analyst configuration
-        if base_agent_key not in ANALYST_CONFIG:
+        # Track portfolio manager nodes for special handling (before ANALYST_CONFIG check)
+        if base_agent_key == "portfolio_manager":
+            portfolio_manager_nodes.add(unique_agent_id)
             continue
             
-        # Skip portfolio_manager nodes as they are handled separately below
-        if base_agent_key == "portfolio_manager":
+        # Skip if the base agent key is not in our analyst configuration
+        if base_agent_key not in ANALYST_CONFIG:
             continue
             
         node_name, node_func = analyst_nodes[base_agent_key]
         agent_function = create_agent_function(node_func, unique_agent_id)
         graph.add_node(unique_agent_id, agent_function)
-        graph.add_edge("start_node", unique_agent_id)
+    
+    # Add portfolio manager nodes and their corresponding risk managers
+    risk_manager_nodes = {}  # Map portfolio manager ID to risk manager ID
+    for portfolio_manager_id in portfolio_manager_nodes:
+        portfolio_manager_function = create_agent_function(portfolio_management_agent, portfolio_manager_id)
+        graph.add_node(portfolio_manager_id, portfolio_manager_function)
+        
+        # Create unique risk manager for this portfolio manager
+        suffix = portfolio_manager_id.split('_')[-1]
+        risk_manager_id = f"risk_management_agent_{suffix}"
+        risk_manager_nodes[portfolio_manager_id] = risk_manager_id
+        
+        # Add the risk manager node
+        risk_manager_function = create_agent_function(risk_management_agent, risk_manager_id)
+        graph.add_node(risk_manager_id, risk_manager_function)
 
-    # TODO - do not always add risk and portfolio management
-    graph.add_node("risk_management_agent", risk_management_agent)
-
-    portfolio_manager_function = create_agent_function(portfolio_management_agent, "portfolio_manager")
-    graph.add_node("portfolio_manager", portfolio_manager_function)
-
-    # Connect all selected agents to risk management
-    for unique_agent_id in selected_agents:
-        base_agent_key = extract_base_agent_key(unique_agent_id)
-        if base_agent_key in ANALYST_CONFIG and base_agent_key != "portfolio_manager":
-            graph.add_edge(unique_agent_id, "risk_management_agent")
-
-    # Connect the risk management agent to the portfolio management agent
-    graph.add_edge("risk_management_agent", "portfolio_manager")
-
-    # Connect the portfolio management agent to the end node
-    graph.add_edge("portfolio_manager", END)
+    # Build connections based on React Flow graph structure
+    nodes_with_incoming_edges = set()
+    nodes_with_outgoing_edges = set()
+    direct_to_portfolio_managers = {}  # Map analyst ID to portfolio manager ID for direct connections
+    
+    for edge in graph_edges:
+        # Only consider edges between agent nodes (not from stock tickers)
+        if edge.source in agent_ids_set and edge.target in agent_ids_set:
+            source_base_key = extract_base_agent_key(edge.source)
+            target_base_key = extract_base_agent_key(edge.target)
+            
+            nodes_with_incoming_edges.add(edge.target)
+            nodes_with_outgoing_edges.add(edge.source)
+            
+            # Check if this is a direct connection from analyst to portfolio manager
+            if (source_base_key in ANALYST_CONFIG and 
+                source_base_key != "portfolio_manager" and 
+                target_base_key == "portfolio_manager"):
+                # Don't add direct edge to portfolio manager - we'll route through risk manager
+                direct_to_portfolio_managers[edge.source] = edge.target
+            else:
+                # Add edge between agent nodes (but not direct to portfolio managers)
+                graph.add_edge(edge.source, edge.target)
+    
+    # Connect start_node to nodes that don't have incoming edges from other agents
+    for agent_id in agent_ids:
+        if agent_id not in nodes_with_incoming_edges:
+            base_agent_key = extract_base_agent_key(agent_id)
+            if base_agent_key in ANALYST_CONFIG and base_agent_key != "portfolio_manager":
+                graph.add_edge("start_node", agent_id)
+    
+    # Connect analysts that have direct connections to portfolio managers to their corresponding risk managers
+    for analyst_id, portfolio_manager_id in direct_to_portfolio_managers.items():
+        risk_manager_id = risk_manager_nodes[portfolio_manager_id]
+        graph.add_edge(analyst_id, risk_manager_id)
+    
+    # Connect non-portfolio-manager agents to risk management if they don't have outgoing edges
+    # These agents will connect to all risk managers (since we don't know which portfolio manager they're for)
+    orphaned_analysts = []
+    for agent_id in agent_ids:
+        base_agent_key = extract_base_agent_key(agent_id)
+        if (base_agent_key in ANALYST_CONFIG and 
+            base_agent_key != "portfolio_manager" and 
+            agent_id not in nodes_with_outgoing_edges):
+            orphaned_analysts.append(agent_id)
+    
+    # Connect orphaned analysts to all risk managers
+    for agent_id in orphaned_analysts:
+        for risk_manager_id in risk_manager_nodes.values():
+            graph.add_edge(agent_id, risk_manager_id)
+    
+    # Connect each risk manager to its corresponding portfolio manager
+    for portfolio_manager_id, risk_manager_id in risk_manager_nodes.items():
+        graph.add_edge(risk_manager_id, portfolio_manager_id)
+    
+    # Connect portfolio managers to END
+    for portfolio_manager_id in portfolio_manager_nodes:
+        graph.add_edge(portfolio_manager_id, END)
 
     # Set the entry point to the start node
     graph.set_entry_point("start_node")

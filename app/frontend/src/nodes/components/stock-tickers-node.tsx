@@ -1,5 +1,5 @@
 import { ModelSelector } from '@/components/ui/llm-selector';
-import { getConnectedEdges, useReactFlow, type NodeProps } from '@xyflow/react';
+import { useReactFlow, type NodeProps } from '@xyflow/react';
 import { List, Play, Square } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -138,34 +138,18 @@ export function StockTickersNode({
     // Get the nodes and edges
     const nodes = getNodes();
     const edges = getEdges();
-    const connectedEdges = getConnectedEdges(nodes, edges);
     
-    // Get all nodes that are agents and are connected in the flow
-    const selectedAgents = new Set<string>();
+    // Filter out non-agent nodes (keep only agent nodes, not the stock tickers node)
+    const agentNodes = nodes.filter(node => node.id !== id);
     
-    // First, collect all the target node IDs from connected edges
-    const connectedNodeIds = new Set<string>();
-    connectedEdges.forEach(edge => {
-      if (edge.source === id) {
-        connectedNodeIds.add(edge.target);
-      }
-    });
-    
-    // Then filter for nodes that are agents
-    nodes.forEach(node => {
-      if (node.id !== id) {
-        selectedAgents.add(node.id);
-      }
-    });
-
-    // Collect agent models from connected agent nodes
+    // Collect agent models from all agent nodes
     const agentModels = [];
     const allAgentModels = getAllAgentModels(flowId);
-    for (const agentId of selectedAgents) {
-      const model = allAgentModels[agentId];
+    for (const node of agentNodes) {
+      const model = allAgentModels[node.id];
       if (model) {
         agentModels.push({
-          agent_id: agentId,
+          agent_id: node.id,
           model_name: model.model_name,
           model_provider: model.provider as any
         });
@@ -178,7 +162,14 @@ export function StockTickersNode({
     // Use the flow connection hook to run the flow
     runFlow({
       tickers: tickerList,
-      selected_agents: Array.from(selectedAgents),
+      // Send the actual graph structure instead of just selected agents
+      graph_nodes: agentNodes.map(node => ({
+        id: node.id,
+        type: node.type,
+        data: node.data,
+        position: node.position
+      })),
+      graph_edges: edges,
       agent_models: agentModels,
       // Keep global model for backwards compatibility (will be removed later)
       model_name: selectedModel?.model_name || undefined,

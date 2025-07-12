@@ -20,12 +20,15 @@ router = APIRouter(prefix="/hedge-fund")
     },
 )
 async def run_hedge_fund(request_data: HedgeFundRequest, request: Request):
-    try:
+    # try:
         # Create the portfolio
         portfolio = create_portfolio(request_data.initial_cash, request_data.margin_requirement, request_data.tickers)
 
-        # Construct agent graph
-        graph = create_graph(request_data.selected_agents)
+        # Construct agent graph using the React Flow graph structure
+        graph = create_graph(
+            graph_nodes=request_data.graph_nodes,
+            graph_edges=request_data.graph_edges
+        )
         graph = graph.compile()
 
         # Log a test progress update for debugging
@@ -141,10 +144,10 @@ async def run_hedge_fund(request_data: HedgeFundRequest, request: Request):
         # Return a streaming response
         return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred while processing the request: {str(e)}")
+    # except HTTPException as e:
+    #     raise e
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"An error occurred while processing the request: {str(e)}")
 
 @router.get(
     path="/agents",

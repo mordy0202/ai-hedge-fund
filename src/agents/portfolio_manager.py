@@ -38,7 +38,14 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
         progress.update_status(agent_id, ticker, "Processing analyst signals")
 
         # Get position limits and current prices for the ticker
-        risk_data = analyst_signals.get("risk_management_agent", {}).get(ticker, {})
+        # Find the corresponding risk manager for this portfolio manager
+        if agent_id.startswith("portfolio_manager_"):
+            suffix = agent_id.split('_')[-1]
+            risk_manager_id = f"risk_management_agent_{suffix}"
+        else:
+            risk_manager_id = "risk_management_agent"  # Fallback for legacy
+        
+        risk_data = analyst_signals.get(risk_manager_id, {}).get(ticker, {})
         position_limits[ticker] = risk_data.get("remaining_position_limit", 0)
         current_prices[ticker] = risk_data.get("current_price", 0)
 
@@ -51,7 +58,8 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
         # Get signals for the ticker
         ticker_signals = {}
         for agent, signals in analyst_signals.items():
-            if agent != "risk_management_agent" and ticker in signals:
+            # Skip all risk management agents (they have different signal structure)
+            if not agent.startswith("risk_management_agent") and ticker in signals:
                 ticker_signals[agent] = {"signal": signals[ticker]["signal"], "confidence": signals[ticker]["confidence"]}
         signals_by_ticker[ticker] = ticker_signals
 

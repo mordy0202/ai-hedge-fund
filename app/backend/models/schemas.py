@@ -29,9 +29,25 @@ class ErrorResponse(BaseModel):
     error: str | None = None
 
 
+class GraphNode(BaseModel):
+    id: str
+    type: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+    position: Optional[Dict[str, Any]] = None
+
+
+class GraphEdge(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+
+
 class HedgeFundRequest(BaseModel):
     tickers: List[str]
-    selected_agents: List[str]
+    graph_nodes: List[GraphNode]
+    graph_edges: List[GraphEdge]
     agent_models: Optional[List[AgentModelConfig]] = None
     end_date: Optional[str] = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
     start_date: Optional[str] = None
@@ -45,6 +61,10 @@ class HedgeFundRequest(BaseModel):
         if self.start_date:
             return self.start_date
         return (datetime.strptime(self.end_date, "%Y-%m-%d") - timedelta(days=90)).strftime("%Y-%m-%d")
+
+    def get_agent_ids(self) -> List[str]:
+        """Extract agent IDs from graph structure"""
+        return [node.id for node in self.graph_nodes]
 
     def get_agent_model_config(self, agent_id: str) -> tuple[str, ModelProvider]:
         """Get model configuration for a specific agent"""

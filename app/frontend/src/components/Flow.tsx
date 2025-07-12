@@ -1,5 +1,6 @@
 import {
   Background,
+  BackgroundVariant,
   ColorMode,
   Connection,
   Edge,
@@ -276,6 +277,13 @@ export function Flow({ className = '' }: FlowProps) {
     [setEdges, currentFlowId, saveCurrentFlowWithCompleteState]
   );
 
+  // Theme-aware background colors
+  const backgroundStyle = {
+    backgroundColor: resolvedTheme === 'light' ? '#ffffff' : '#0a0a0a'
+  };
+  
+  const gridColor = resolvedTheme === 'light' ? '#e5e5e5' : '#666666';
+
   return (
     <div className={`w-full h-full ${className}`}>
       <TooltipProvider>
@@ -292,9 +300,10 @@ export function Flow({ className = '' }: FlowProps) {
           proOptions={proOptions}
         >
           <Background 
+            variant={BackgroundVariant.Dots}
             gap={13}
-            color="#666666"
-            style={{ backgroundColor: '#0a0a0a' }}
+            color={gridColor}
+            style={backgroundStyle}
           />
           {/* <CustomControls onReset={resetFlow} /> */}
         </ReactFlow>
