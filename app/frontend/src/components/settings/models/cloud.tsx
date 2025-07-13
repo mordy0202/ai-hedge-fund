@@ -91,7 +91,7 @@ export function CloudModels({ className }: CloudModelsProps) {
             {allModels.map((model) => (
               <div 
                 key={`${model.provider}-${model.model_name}`}
-                className="group flex items-center justify-between bg-gray-700/30 hover-bg rounded-md px-3 py-2.5 transition-colors"
+                className="group flex items-center justify-between bg-muted hover-bg rounded-md px-3 py-2.5 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

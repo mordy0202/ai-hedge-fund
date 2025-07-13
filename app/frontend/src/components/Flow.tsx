@@ -279,10 +279,10 @@ export function Flow({ className = '' }: FlowProps) {
 
   // Theme-aware background colors
   const backgroundStyle = {
-    backgroundColor: resolvedTheme === 'light' ? '#ffffff' : '#0a0a0a'
+    backgroundColor: 'hsl(var(--background))'
   };
   
-  const gridColor = resolvedTheme === 'light' ? '#e5e5e5' : '#666666';
+  const gridColor = resolvedTheme === 'light' ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))';
 
   return (
     <div className={`w-full h-full ${className}`}>

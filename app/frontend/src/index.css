@@ -20,11 +20,17 @@
     --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 88%;
+    --border: 0 0% 85%;
+    --node-border: 0 0% 88%;
+    --node-border-hover: 0 0% 75%;
+    --node-border-selected: 0 0% 10%;
+    --status-border: 0 0% 85%;
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
+    --panel-bg: 0 0% 100%;
+    --node-bg: 0 0% 98%;
     
     /* Hover colors for light theme */
     --hover-background: rgb(156 163 175 / 0.3); /* gray-400/30 */
@@ -93,9 +99,14 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 25%;
+    --node-border: 0 0% 25%;
+    --node-border-hover: 0 0% 40%;
+    --node-border-selected: 0 0% 90%;
+    --status-border: 0 0% 25%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
     --panel-bg: 240 3% 11%;
+    --node-bg: 240 3% 11%;
     --sidebar-background: 240 5.9% 16%;
     
     /* Hover colors for dark theme */
@@ -134,6 +145,26 @@
 }
 
 @layer utilities {
+  .bg-node {
+    background-color: hsl(var(--node-bg));
+  }
+  
+  .border-status {
+    border-color: hsl(var(--status-border));
+  }
+  
+  .border-node {
+    border-color: hsl(var(--node-border));
+  }
+  
+  .border-node-hover {
+    border-color: hsl(var(--node-border-hover));
+  }
+  
+  .border-node-selected {
+    border-color: hsl(var(--node-border-selected));
+  }
+  
   .hover-bg {
     @apply hover:bg-[var(--hover-background)];
   }

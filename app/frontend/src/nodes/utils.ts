@@ -12,7 +12,7 @@ export function getStatusColor(status: NodeStatus): string {
     case 'ERROR':
       return 'bg-red-500 dark:bg-red-800';
     default:
-      return 'bg-panel';
+      return 'bg-node';
   }
 }
 

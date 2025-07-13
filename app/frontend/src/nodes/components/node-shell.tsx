@@ -34,8 +34,9 @@ export function NodeShell({
   return (
     <div
       className={cn(
-        "react-flow__node-default relative w-64 select-none cursor-pointer p-0 rounded-lg border transition-all duration-200 hover:border-primary hover:shadow-[0_0_10px_1px_rgba(255,255,255,0.1)]",
-        selected && "ring-1 ring-primary dark:ring-offset-background",
+        "react-flow__node-default relative w-64 select-none cursor-pointer p-0 rounded-lg border border-node transition-all duration-200",
+        !selected && "hover:border-node-hover hover:shadow-lg",
+        selected && "border-node-selected shadow-xl",
         isInProgress && "node-in-progress"
       )}
       data-id={id}
@@ -53,8 +54,8 @@ export function NodeShell({
         />
       )}
       <div className="overflow-hidden rounded-lg">
-        <Card className="bg-panel rounded-none overflow-hidden border-none">
-          <CardHeader className="p-3 bg-panel flex flex-row items-center space-x-2 rounded-t-sm">
+        <Card className="bg-node rounded-none overflow-hidden border-none">
+          <CardHeader className="p-3 bg-node flex flex-row items-center space-x-2 rounded-t-sm">
             <div className={cn(
               "flex items-center justify-center h-8 w-8 rounded-lg text-primary",
               isInProgress ? "gradient-animation" : iconColor

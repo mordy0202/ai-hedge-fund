@@ -47,7 +47,7 @@ export function OutputNodeStatus({
   return (
     <div 
       className={cn(
-        "text-foreground text-xs rounded p-2 border border-border transition-colors",
+        "text-foreground text-xs rounded p-2 border border-status transition-colors",
         hasGradientAnimation ? "gradient-animation" : getStatusColor(status),
         isClickable && "bg-primary text-primary-foreground cursor-pointer hover:bg-primary/80",
         !isOutputAvailable && !hasGradientAnimation && "opacity-50"

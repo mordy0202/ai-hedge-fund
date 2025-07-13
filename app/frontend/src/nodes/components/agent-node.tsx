@@ -92,7 +92,7 @@ export function AgentNode({
             </div>
 
             <div className={cn(
-              "text-foreground text-xs rounded p-2 border border-border",
+              "text-foreground text-xs rounded p-2 border border-status",
               isInProgress ? "gradient-animation" : getStatusColor(status)
             )}>
               <span className="capitalize">{status.toLowerCase().replace(/_/g, ' ')}</span>
