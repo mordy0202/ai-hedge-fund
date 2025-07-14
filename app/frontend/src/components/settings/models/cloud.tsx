@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { cn, getProviderColor } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Cloud, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -105,7 +105,7 @@ export function CloudModels({ className }: CloudModelsProps) {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Badge className={cn("text-xs", getProviderColor(model.provider))}>
+                  <Badge className="text-xs text-primary bg-primary/10 border-primary/30 hover:bg-primary/20 hover:border-primary/50">
                     {model.provider}
                   </Badge>
                 </div>

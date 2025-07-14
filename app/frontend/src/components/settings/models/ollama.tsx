@@ -580,7 +580,7 @@ export function OllamaSettings() {
             size="sm"
             onClick={refreshStatus}
             disabled={loading}
-            className="border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
+            className="text-primary hover:bg-primary/20 hover:text-primary border-primary/30 hover:border-primary/50"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>
@@ -600,7 +600,7 @@ export function OllamaSettings() {
       )}
 
       {!ollamaStatus?.installed && (
-        <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg p-4">
+        <div className="bg-muted rounded-lg p-4">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
@@ -623,7 +623,7 @@ export function OllamaSettings() {
       )}
 
       {ollamaStatus?.installed && !ollamaStatus.running && (
-        <div className="flex items-center justify-between bg-gray-700/20 border border-gray-600/30 rounded-lg p-4">
+        <div className="flex items-center justify-between bg-muted rounded-lg p-4">
           <div>
             <h4 className="font-medium text-primary">Ollama Server</h4>
             <p className="text-sm text-primary">
@@ -633,7 +633,7 @@ export function OllamaSettings() {
           <Button
             onClick={startOllamaServer}
             disabled={actionLoading === 'start-server'}
-            className="flex items-center gap-2 border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
+            className="flex items-center gap-2 text-primary hover:bg-primary/20 hover:text-primary bg-primary/10 border-primary/30 hover:border-primary/50"
           >
             <Play className="h-4 w-4" />
             {actionLoading === 'start-server' ? 'Starting...' : 'Start Server'}
@@ -642,7 +642,7 @@ export function OllamaSettings() {
       )}
 
       {ollamaStatus?.running && (
-        <div className="flex items-center justify-between bg-gray-700/20 border border-gray-600/30 rounded-lg p-4">
+        <div className="flex items-center justify-between bg-muted rounded-lg p-4">
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-primary" />
             <div>
@@ -658,7 +658,7 @@ export function OllamaSettings() {
             variant="outline"
             onClick={stopOllamaServer}
             disabled={actionLoading === 'stop-server'}
-            className="flex items-center gap-2 border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
+            className="flex items-center gap-2 text-primary hover:bg-primary/20 hover:text-primary border-primary/30 hover:border-primary/50"
           >
             <Square className="h-4 w-4" />
             {actionLoading === 'stop-server' ? 'Stopping...' : 'Disconnect'}
@@ -677,7 +677,7 @@ export function OllamaSettings() {
           
           {/* Show active downloads */}
           {Object.entries(downloadProgress).map(([modelName, progress]) => (
-            <div key={`download-${modelName}`} className="bg-gray-700/30 rounded-md px-3 py-3 border border-gray-600/40">
+            <div key={`download-${modelName}`} className="bg-muted rounded-md px-3 py-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm text-primary">
@@ -688,7 +688,7 @@ export function OllamaSettings() {
                     progress.status === 'downloading' && "bg-blue-600/30 text-primary border-blue-600/40",
                     progress.status === 'completed' && "bg-green-600/30 text-green-500 border-green-600/40",
                     progress.status === 'error' && "bg-red-600/30 text-red-500 border-red-600/40",
-                    progress.status === 'cancelled' && "bg-gray-600/30 text-gray-primary border-gray-600/40"
+                    progress.status === 'cancelled' && "bg-muted text-muted-foreground"
                   )}>
                     {progress.status === 'downloading' && 'Downloading'}
                     {progress.status === 'completed' && 'Completed'}
@@ -718,7 +718,7 @@ export function OllamaSettings() {
                   <span>{progress.phase || progress.status}</span>
                   <span>{progress.percentage ? `${progress.percentage.toFixed(1)}%` : '...'}</span>
                 </div>
-                <div className="w-full bg-gray-600/30 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div 
                     className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progress.percentage || 0}%` }}
@@ -741,7 +741,7 @@ export function OllamaSettings() {
               {allModels.map((model) => (
                 <div 
                   key={model.model_name} 
-                  className="group flex items-center justify-between bg-gray-700/30 hover:bg-gray-700/50 rounded-md px-3 py-2.5 transition-colors"
+                  className="group flex items-center justify-between bg-muted hover-bg rounded-md px-3 py-2.5 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -780,7 +780,7 @@ export function OllamaSettings() {
                           variant="outline"
                           size="sm"
                           onClick={() => downloadModelWithProgress(model.model_name)}
-                          className="flex items-center gap-2 h-7 border-gray-600/40 bg-gray-600/10 text-primary hover:bg-gray-600/20 hover:border-gray-600/60 hover:text-primary"
+                          className="flex items-center gap-2 h-7 text-primary hover:bg-primary/20 hover:text-primary border-primary/30 hover:border-primary/50"
                         >
                           <Download className="h-3 w-3" />
                           Download

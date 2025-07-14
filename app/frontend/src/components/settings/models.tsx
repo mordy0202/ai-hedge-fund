@@ -54,7 +54,7 @@ export function Models({ className }: ModelsProps) {
       </div>
 
       {/* Model Type Navigation */}
-      <div className="flex space-x-1 bg-gray-700/20 p-1 rounded-lg border border-gray-600/30">
+      <div className="flex space-x-1 bg-muted p-1 rounded-lg">
         {modelSections.map((section) => {
           const Icon = section.icon;
           const isSelected = selectedSection === section.id;
@@ -68,16 +68,16 @@ export function Models({ className }: ModelsProps) {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors",
                 isSelected 
-                  ? "bg-gray-600/40 text-primary shadow-sm" 
+                  ? "active-bg text-blue-500 shadow-sm" 
                   : isDisabled
                   ? "text-muted-foreground cursor-not-allowed"
-                  : "text-primary hover:text-gray-100 hover:bg-gray-700/30"
+                  : "text-primary hover:text-primary hover-bg"
               )}
             >
               <Icon className="h-4 w-4" />
               {section.label}
               {isDisabled && (
-                <span className="text-xs bg-gray-600/30 text-muted-foreground px-1.5 py-0.5 rounded">
+                <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
                   Soon
                 </span>
               )}

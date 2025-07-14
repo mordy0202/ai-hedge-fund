@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { type LanguageModel } from "@/data/models"
-import { cn, getProviderColor } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface ModelSelectorProps {
   models: LanguageModel[];
@@ -82,7 +82,7 @@ export function ModelSelector({
                       <span className="text-title">{model.display_name}</span>
                       <span className="text-xs text-muted-foreground font-mono">{model.model_name}</span>
                     </div>
-                    <Badge className={cn("text-xs", getProviderColor(model.provider))}>
+                    <Badge className="text-xs text-primary bg-primary/10 border-primary/30 hover:bg-primary/20 hover:border-primary/50">
                       {model.provider}
                     </Badge>
                   </div>
