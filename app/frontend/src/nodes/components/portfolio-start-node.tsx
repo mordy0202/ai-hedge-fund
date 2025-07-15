@@ -13,7 +13,7 @@ import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
 import { formatKeyboardShortcut } from '@/lib/utils';
-import { type PortfolioAnalyzerNode } from '../types';
+import { type PortfolioStartNode } from '../types';
 import { NodeShell } from './node-shell';
 
 interface PortfolioPosition {
@@ -22,12 +22,12 @@ interface PortfolioPosition {
   tradePrice: string;
 }
 
-export function PortfolioAnalyzerNode({
+export function PortfolioStartNode({
   data,
   selected,
   id,
   isConnectable,
-}: NodeProps<PortfolioAnalyzerNode>) {
+}: NodeProps<PortfolioStartNode>) {
   // Calculate default dates
   const today = new Date();
   const threeMonthsAgo = new Date(today);
@@ -340,8 +340,9 @@ export function PortfolioAnalyzerNode({
                   })}
                   <Button
                     onClick={addPosition}
-                    className="w-full mt-2"
+                    className="w-full mt-2 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
                     size="sm"
+                    variant="secondary"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Position

@@ -41,13 +41,13 @@ export const extractBaseAgentKey = (uniqueId: string): string => {
 
 // Define base node creation functions (non-agent nodes)
 const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
-  "Portfolio Analyzer": {
+  "Portfolio Input": {
     createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `portfolio-analyzer-node_${generateUniqueIdSuffix()}`,
-      type: "portfolio-analyzer-node",
+      id: `portfolio-start-node_${generateUniqueIdSuffix()}`,
+      type: "portfolio-start-node",
       position,
       data: {
-        name: "Portfolio Analyzer",
+        name: "Portfolio Input",
         description: "Start Node",
         status: "Idle",
       },
@@ -65,13 +65,13 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       },
     }),
   },
-  "Stock Analyzer": {
+  "Stock Input": {
     createNode: (position: { x: number, y: number }): AppNode => ({
       id: `stock-analyzer-node_${generateUniqueIdSuffix()}`,
       type: "stock-analyzer-node",
       position,
       data: {
-        name: "Stock Analyzer",
+        name: "Stock Input",
         description: "Start Node",
         status: "Idle",
       },
