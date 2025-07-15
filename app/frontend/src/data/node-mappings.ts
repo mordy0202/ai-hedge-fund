@@ -48,7 +48,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Portfolio Analyzer",
-        description: "Analyzes portfolio and generates trading signals",
+        description: "Used for analyzing a portfolio of stocks",
         status: "Idle",
       },
     }),

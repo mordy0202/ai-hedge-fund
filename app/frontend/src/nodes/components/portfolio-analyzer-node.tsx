@@ -1,9 +1,7 @@
-import { ModelSelector } from '@/components/ui/llm-selector';
 import { useReactFlow, type NodeProps } from '@xyflow/react';
-import { ChartLine, Play, Square } from 'lucide-react';
+import { PieChart, Play, Plus, Square, X } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +16,12 @@ import { formatKeyboardShortcut } from '@/lib/utils';
 import { type PortfolioAnalyzerNode } from '../types';
 import { NodeShell } from './node-shell';
 
+interface PortfolioPosition {
+  ticker: string;
+  quantity: string;
+  tradePrice: string;
+}
+
 export function PortfolioAnalyzerNode({
   data,
   selected,
@@ -30,7 +34,9 @@ export function PortfolioAnalyzerNode({
   threeMonthsAgo.setMonth(today.getMonth() - 3);
   
   // Use persistent state hooks
-  const [tickers, setTickers] = useNodeState(id, 'tickers', 'AAPL,NVDA,TSLA');
+  const [positions, setPositions] = useNodeState<PortfolioPosition[]>(id, 'positions', [
+    { ticker: '', quantity: '', tradePrice: '' },
+  ]);
   const [selectedModel, setSelectedModel] = useNodeState<LanguageModel | null>(id, 'selectedModel', null);
   const [availableModels, setAvailableModels] = useNodeState<LanguageModel[]>(id, 'availableModels', []);
   const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
@@ -54,10 +60,10 @@ export function PortfolioAnalyzerNode({
     recoverFlowState
   } = useFlowConnection(flowId);
   
-  // Check if the hedge fund can be run
-  const canRunHedgeFund = canRun && tickers.trim() !== '';
+  // Check if the portfolio analyzer can be run
+  const canRunPortfolioAnalyzer = canRun && positions.length > 0 && positions.every(pos => pos.ticker.trim() !== '');
   
-  // Add keyboard shortcut for Cmd+Enter / Ctrl+Enter to run hedge fund
+  // Add keyboard shortcut for Cmd+Enter / Ctrl+Enter to run portfolio analyzer
   useKeyboardShortcuts({
     shortcuts: [
       {
@@ -65,7 +71,7 @@ export function PortfolioAnalyzerNode({
         ctrlKey: true,
         metaKey: true,
         callback: () => {
-          if (canRunHedgeFund) {
+          if (canRunPortfolioAnalyzer) {
             handlePlay();
           }
         },
@@ -104,16 +110,22 @@ export function PortfolioAnalyzerNode({
     }
   }, [flowId, recoverFlowState]);
   
-  const handleTickersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTickers(e.target.value);
+  const handlePositionChange = (index: number, field: keyof PortfolioPosition, value: string) => {
+    const newPositions = [...positions];
+    newPositions[index] = { ...newPositions[index], [field]: value };
+    setPositions(newPositions);
   };
 
-  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStartDate(e.target.value);
+  const handleAddPosition = () => {
+    const newPosition: PortfolioPosition = { ticker: '', quantity: '', tradePrice: '' };
+    setPositions([...positions, newPosition]);
   };
 
-  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEndDate(e.target.value);
+  const handleRemovePosition = (index: number) => {
+    if (positions.length > 1) {
+      const newPositions = positions.filter((_, i) => i !== index);
+      setPositions(newPositions);
+    }
   };
 
   const handleInitialCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +142,14 @@ export function PortfolioAnalyzerNode({
     return num.toLocaleString('en-US');
   };
 
+  // Format numeric input for display
+  const formatNumericValue = (value: string) => {
+    if (!value) return '';
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    return num.toLocaleString('en-US');
+  };
+
   const handleStop = () => {
     stopFlow();
   };
@@ -139,7 +159,7 @@ export function PortfolioAnalyzerNode({
     const allNodes = getNodes();
     const allEdges = getEdges();
     
-    // Find all nodes that are reachable from the stock-analyzer-node
+    // Find all nodes that are reachable from the portfolio-analyzer-node
     const reachableNodes = new Set<string>();
     const visited = new Set<string>();
     
@@ -148,7 +168,7 @@ export function PortfolioAnalyzerNode({
       if (visited.has(nodeId)) return;
       visited.add(nodeId);
       
-      // If this is not the stock-analyzer-node itself, add it to reachable nodes
+      // If this is not the portfolio-analyzer-node itself, add it to reachable nodes
       if (nodeId !== id) {
         reachableNodes.add(nodeId);
       }
@@ -160,13 +180,13 @@ export function PortfolioAnalyzerNode({
       }
     };
     
-    // Start DFS from the stock-analyzer-node
+    // Start DFS from the portfolio-analyzer-node
     dfs(id);
     
     // Filter nodes to only include reachable ones
     const agentNodes = allNodes.filter(node => reachableNodes.has(node.id));
     
-    // Filter edges to only include connections between reachable nodes (plus the stock-analyzer-node)
+    // Filter edges to only include connections between reachable nodes (plus the portfolio-analyzer-node)
     const reachableNodeIds = new Set([id, ...reachableNodes]);
     const validEdges = allEdges.filter(edge => 
       reachableNodeIds.has(edge.source) && reachableNodeIds.has(edge.target)
@@ -186,8 +206,15 @@ export function PortfolioAnalyzerNode({
       }
     }
     
-    // Convert tickers to array    
-    const tickerList = tickers.split(',').map(t => t.trim());
+    // Convert positions to the expected format for future backend use
+    const portfolioPositions = positions.map(pos => ({
+      ticker: pos.ticker.trim(),
+      quantity: parseFloat(pos.quantity) || 0,
+      trade_price: parseFloat(pos.tradePrice) || 0
+    }));
+    
+    // For now, extract tickers for current API compatibility
+    const tickerList = positions.map(pos => pos.ticker.trim()).filter(ticker => ticker !== '');
         
     // Use the flow connection hook to run the flow
     runFlow({
@@ -207,6 +234,8 @@ export function PortfolioAnalyzerNode({
       start_date: startDate,
       end_date: endDate,
       initial_cash: parseFloat(initialCash) || 100000,
+      // TODO: Add portfolio_positions when backend supports it
+      // portfolio_positions: portfolioPositions,
     });
   };
 
@@ -219,38 +248,39 @@ export function PortfolioAnalyzerNode({
         id={id}
         selected={selected}
         isConnectable={isConnectable}
-        icon={<ChartLine className="h-5 w-5" />}
-        name={data.name || "Stock Analyzer"}
+        icon={<PieChart className="h-5 w-5" />}
+        name={data.name || "Portfolio Analyzer"}
         description={data.description}
         hasLeftHandle={false}
+        width="w-96"
       >
         <CardContent className="p-0">
           <div className="border-t border-border p-3">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <div className="text-subtitle text-primary flex items-center gap-1">
-                  <Tooltip delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <span>Tickers</span>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      You can add multiple tickers using commas (AAPL,NVDA,TSLA)
-                    </TooltipContent>
-                  </Tooltip>
+                  Initial Cash
                 </div>
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter tickers"
-                    value={tickers}
-                    onChange={handleTickersChange}
-                  />
+                  <div className="relative flex-1">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
+                      $
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="100,000"
+                      value={formatCurrency(initialCash)}
+                      onChange={handleInitialCashChange}
+                      className="pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
                   <Button 
                     size="icon" 
                     variant="secondary"
                     className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
                     title={showAsProcessing ? "Stop" : `Run (${formatKeyboardShortcut('↵')})`}
                     onClick={showAsProcessing ? handleStop : handlePlay}
-                    disabled={!canRunHedgeFund && !showAsProcessing}
+                    disabled={!canRunPortfolioAnalyzer && !showAsProcessing}
                   >
                     {showAsProcessing ? (
                       <Square className="h-3.5 w-3.5" />
@@ -262,63 +292,65 @@ export function PortfolioAnalyzerNode({
               </div>
               <div className="flex flex-col gap-2">
                 <div className="text-subtitle text-primary flex items-center gap-1">
-                  Initial Cash
+                  <Tooltip delayDuration={200}>
+                    <TooltipTrigger asChild>
+                      <span>Positions</span>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      Add your portfolio positions with ticker, quantity, and trade price
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-                    $
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="100,000"
-                    value={formatCurrency(initialCash)}
-                    onChange={handleInitialCashChange}
-                    className="pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-subtitle text-primary flex items-center gap-1">
-                  Model
-                </div>
-                <ModelSelector
-                  models={availableModels}
-                  value={selectedModel?.model_name || ""}
-                  onChange={setSelectedModel}
-                  placeholder="Select a model..."
-                />
-              </div>
-              <Accordion type="single" collapsible>
-                <AccordionItem value="advanced" className="border-none">
-                  <AccordionTrigger className="!text-subtitle text-primary">
-                    Advanced
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2">
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-2">
-                        <div className="text-subtitle text-primary flex items-center gap-1">
-                          End Date
+                <div className="flex flex-col gap-2">
+                  {positions.map((position, index) => {
+                    return (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Ticker"
+                        value={position.ticker}
+                        onChange={(e) => handlePositionChange(index, 'ticker', e.target.value)}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="Quantity"
+                        value={formatNumericValue(position.quantity)}
+                        onChange={(e) => handlePositionChange(index, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))}
+                        className="flex-1"
+                      />
+                      <div className="relative flex-1">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
+                          $
                         </div>
                         <Input
-                          type="date"
-                          value={endDate}
-                          onChange={handleEndDateChange}
+                          placeholder="Price"
+                          value={formatNumericValue(position.tradePrice)}
+                          onChange={(e) => handlePositionChange(index, 'tradePrice', e.target.value.replace(/[^0-9.]/g, ''))}
+                          className="pl-8"
                         />
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="text-subtitle text-primary flex items-center gap-1">
-                          Start Date
-                        </div>
-                        <Input
-                          type="date"
-                          value={startDate}
-                          onChange={handleStartDateChange}
-                        />
-                      </div>
+                      {positions.length > 1 && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleRemovePosition(index)}
+                          className="flex-shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+                    );
+                  })}
+                  <Button
+                    onClick={handleAddPosition}
+                    className="w-full mt-2"
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Position
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

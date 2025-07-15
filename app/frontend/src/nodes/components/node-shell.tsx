@@ -15,6 +15,7 @@ export interface NodeShellProps {
   hasLeftHandle?: boolean;
   hasRightHandle?: boolean;
   status?: string;
+  width?: string;
 }
 
 export function NodeShell({
@@ -29,12 +30,14 @@ export function NodeShell({
   hasLeftHandle = true,
   hasRightHandle = true,
   status = 'IDLE',
+  width = 'w-64',
 }: NodeShellProps) {
   const isInProgress = status === 'IN_PROGRESS';
   return (
     <div
       className={cn(
-        "react-flow__node-default relative w-64 select-none cursor-pointer p-0 rounded-lg border border-node transition-all duration-200",
+        "react-flow__node-default relative select-none cursor-pointer p-0 rounded-lg border border-node transition-all duration-200",
+        width,
         !selected && "hover:border-node-hover hover:shadow-lg",
         selected && "border-node-selected shadow-xl",
         isInProgress && "node-in-progress"
