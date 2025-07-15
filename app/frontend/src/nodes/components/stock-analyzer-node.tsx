@@ -1,4 +1,3 @@
-import { ModelSelector } from '@/components/ui/llm-selector';
 import { useReactFlow, type NodeProps } from '@xyflow/react';
 import { ChartLine, Play, Square } from 'lucide-react';
 import { useEffect } from 'react';
@@ -10,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlowContext } from '@/contexts/flow-context';
 import { useNodeContext } from '@/contexts/node-context';
-import { getDefaultModel, getModels, LanguageModel } from '@/data/models';
 import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
@@ -31,8 +29,6 @@ export function StockAnalyzerNode({
   
   // Use persistent state hooks
   const [tickers, setTickers] = useNodeState(id, 'tickers', 'AAPL,NVDA,TSLA');
-  const [selectedModel, setSelectedModel] = useNodeState<LanguageModel | null>(id, 'selectedModel', null);
-  const [availableModels, setAvailableModels] = useNodeState<LanguageModel[]>(id, 'availableModels', []);
   const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
   const [endDate, setEndDate] = useNodeState(id, 'endDate', today.toISOString().split('T')[0]);
   const [initialCash, setInitialCash] = useNodeState(id, 'initialCash', '100000');
@@ -74,29 +70,6 @@ export function StockAnalyzerNode({
     ],
   });
   
-  // Load models and set default on mount
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        const [models, defaultModel] = await Promise.all([
-          getModels(),
-          getDefaultModel()
-        ]);
-        setAvailableModels(models);
-        
-        // Only set default model if no model is currently selected
-        if (!selectedModel && defaultModel) {
-          setSelectedModel(defaultModel);
-        }
-      } catch (error) {
-        console.error('Failed to load models:', error);
-        // Keep empty array and null as fallback
-      }
-    };
-    
-    loadModels();
-  }, []); // Remove selectedModel from dependencies to avoid infinite loop
-
   // Recover flow state when component mounts or flow changes
   useEffect(() => {
     if (flowId) {
@@ -201,9 +174,9 @@ export function StockAnalyzerNode({
       })),
       graph_edges: validEdges,
       agent_models: agentModels,
-      // Keep global model for backwards compatibility (will be removed later)
-      model_name: selectedModel?.model_name || undefined,
-      model_provider: selectedModel?.provider as any || undefined,
+      // No global model - each agent uses its own model or system default
+      model_name: undefined,
+      model_provider: undefined,
       start_date: startDate,
       end_date: endDate,
       initial_cash: parseFloat(initialCash) || 100000,
@@ -277,17 +250,7 @@ export function StockAnalyzerNode({
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-subtitle text-primary flex items-center gap-1">
-                  Model
-                </div>
-                <ModelSelector
-                  models={availableModels}
-                  value={selectedModel?.model_name || ""}
-                  onChange={setSelectedModel}
-                  placeholder="Select a model..."
-                />
-              </div>
+
               <Accordion type="single" collapsible>
                 <AccordionItem value="advanced" className="border-none">
                   <AccordionTrigger className="!text-subtitle text-primary">
