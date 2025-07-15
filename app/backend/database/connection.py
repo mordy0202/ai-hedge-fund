@@ -2,9 +2,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from pathlib import Path
 
-# Database configuration
-DATABASE_URL = "sqlite:///./hedge_fund.db"
+# Get the backend directory path
+BACKEND_DIR = Path(__file__).parent.parent
+DATABASE_PATH = BACKEND_DIR / "hedge_fund.db"
+
+# Database configuration - use absolute path
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # Create SQLAlchemy engine
 engine = create_engine(
