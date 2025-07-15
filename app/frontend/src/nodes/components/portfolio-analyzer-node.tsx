@@ -112,20 +112,17 @@ export function PortfolioAnalyzerNode({
   
   const handlePositionChange = (index: number, field: keyof PortfolioPosition, value: string) => {
     const newPositions = [...positions];
-    newPositions[index] = { ...newPositions[index], [field]: value };
+    newPositions[index][field] = value;
     setPositions(newPositions);
   };
 
-  const handleAddPosition = () => {
-    const newPosition: PortfolioPosition = { ticker: '', quantity: '', tradePrice: '' };
-    setPositions([...positions, newPosition]);
+  const addPosition = () => {
+    setPositions([...positions, { ticker: '', quantity: '', tradePrice: '' }]);
   };
 
-  const handleRemovePosition = (index: number) => {
-    if (positions.length > 1) {
-      const newPositions = positions.filter((_, i) => i !== index);
-      setPositions(newPositions);
-    }
+  const removePosition = (index: number) => {
+    const newPositions = positions.filter((_, i) => i !== index);
+    setPositions(newPositions);
   };
 
   const handleInitialCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,9 +225,9 @@ export function PortfolioAnalyzerNode({
       })),
       graph_edges: validEdges,
       agent_models: agentModels,
-      // Keep global model for backwards compatibility (will be removed later)
-      model_name: selectedModel?.model_name || undefined,
-      model_provider: selectedModel?.provider as any || undefined,
+      // No global model - each agent uses its own model or system default
+      model_name: undefined,
+      model_provider: undefined,
       start_date: startDate,
       end_date: endDate,
       initial_cash: parseFloat(initialCash) || 100000,
@@ -252,14 +249,14 @@ export function PortfolioAnalyzerNode({
         name={data.name || "Portfolio Analyzer"}
         description={data.description}
         hasLeftHandle={false}
-        width="w-96"
+        width="w-80"
       >
         <CardContent className="p-0">
           <div className="border-t border-border p-3">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <div className="text-subtitle text-primary flex items-center gap-1">
-                  Initial Cash
+                  Available Cash
                 </div>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -315,7 +312,7 @@ export function PortfolioAnalyzerNode({
                         placeholder="Quantity"
                         value={formatNumericValue(position.quantity)}
                         onChange={(e) => handlePositionChange(index, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))}
-                        className="flex-1"
+                        className="w-20"
                       />
                       <div className="relative flex-1">
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
@@ -332,8 +329,8 @@ export function PortfolioAnalyzerNode({
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => handleRemovePosition(index)}
-                          className="flex-shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => removePosition(index)}
+                          className="flex-shrink-0 h-8 w-4 text-muted-foreground hover:text-destructive"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -342,7 +339,7 @@ export function PortfolioAnalyzerNode({
                     );
                   })}
                   <Button
-                    onClick={handleAddPosition}
+                    onClick={addPosition}
                     className="w-full mt-2"
                     size="sm"
                   >
