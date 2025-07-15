@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlowContext } from '@/contexts/flow-context';
 import { useNodeContext } from '@/contexts/node-context';
-import { getDefaultModel, getModels, LanguageModel } from '@/data/models';
 import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
@@ -37,10 +36,6 @@ export function PortfolioStartNode({
   const [positions, setPositions] = useNodeState<PortfolioPosition[]>(id, 'positions', [
     { ticker: '', quantity: '', tradePrice: '' },
   ]);
-  const [selectedModel, setSelectedModel] = useNodeState<LanguageModel | null>(id, 'selectedModel', null);
-  const [availableModels, setAvailableModels] = useNodeState<LanguageModel[]>(id, 'availableModels', []);
-  const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useNodeState(id, 'endDate', today.toISOString().split('T')[0]);
   const [initialCash, setInitialCash] = useNodeState(id, 'initialCash', '100000');
   
   const { currentFlowId } = useFlowContext();
@@ -80,29 +75,6 @@ export function PortfolioStartNode({
     ],
   });
   
-  // Load models and set default on mount
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        const [models, defaultModel] = await Promise.all([
-          getModels(),
-          getDefaultModel()
-        ]);
-        setAvailableModels(models);
-        
-        // Only set default model if no model is currently selected
-        if (!selectedModel && defaultModel) {
-          setSelectedModel(defaultModel);
-        }
-      } catch (error) {
-        console.error('Failed to load models:', error);
-        // Keep empty array and null as fallback
-      }
-    };
-    
-    loadModels();
-  }, []); // Remove selectedModel from dependencies to avoid infinite loop
-
   // Recover flow state when component mounts or flow changes
   useEffect(() => {
     if (flowId) {
@@ -228,8 +200,8 @@ export function PortfolioStartNode({
       // No global model - each agent uses its own model or system default
       model_name: undefined,
       model_provider: undefined,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: threeMonthsAgo.toISOString().split('T')[0],
+      end_date: today.toISOString().split('T')[0],
       initial_cash: parseFloat(initialCash) || 100000,
       // TODO: Add portfolio_positions when backend supports it
       // portfolio_positions: portfolioPositions,
