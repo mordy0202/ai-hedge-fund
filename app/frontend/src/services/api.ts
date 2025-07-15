@@ -33,8 +33,8 @@ interface HedgeFundRequest {
   agent_models?: AgentModelConfig[];
   end_date?: string;
   start_date?: string;
-  model_name?: string; // Keep for backwards compatibility, will be removed later
-  model_provider?: ModelProvider; // Keep for backwards compatibility, will be removed later
+  model_name?: string; // System default when agents don't specify their own model
+  model_provider?: ModelProvider; // System default when agents don't specify their own model
   initial_cash?: number;
   margin_requirement?: number;
 }
