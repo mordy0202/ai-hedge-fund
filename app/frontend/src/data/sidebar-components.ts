@@ -3,7 +3,8 @@ import {
   Bot,
   Brain,
   Calculator,
-  List,
+  ChartLine,
+  ChartPie,
   LucideIcon,
   Network,
   Play
@@ -35,7 +36,8 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
       icon: Play,
       iconColor: "text-blue-500",
       items: [
-        { name: "Stock Tickers", icon: List },
+        { name: "Portfolio Analyzer", icon: ChartPie },
+        { name: "Stock Analyzer", icon: ChartLine },
       ]
     },
     {

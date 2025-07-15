@@ -1,6 +1,6 @@
 import { ModelSelector } from '@/components/ui/llm-selector';
 import { useReactFlow, type NodeProps } from '@xyflow/react';
-import { List, Play, Square } from 'lucide-react';
+import { ChartLine, Play, Square } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -15,15 +15,15 @@ import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
 import { formatKeyboardShortcut } from '@/lib/utils';
-import { type StockTickersNode } from '../types';
+import { type PortfolioAnalyzerNode } from '../types';
 import { NodeShell } from './node-shell';
 
-export function StockTickersNode({
+export function PortfolioAnalyzerNode({
   data,
   selected,
   id,
   isConnectable,
-}: NodeProps<StockTickersNode>) {
+}: NodeProps<PortfolioAnalyzerNode>) {
   // Calculate default dates
   const today = new Date();
   const threeMonthsAgo = new Date(today);
@@ -139,13 +139,37 @@ export function StockTickersNode({
     const allNodes = getNodes();
     const allEdges = getEdges();
     
-    // Filter out non-agent nodes (keep only agent nodes, not the stock tickers node)
-    const agentNodes = allNodes.filter(node => node.id !== id);
+    // Find all nodes that are reachable from the stock-analyzer-node
+    const reachableNodes = new Set<string>();
+    const visited = new Set<string>();
     
-    // Filter edges to only include connections between nodes that actually exist in current flow
-    const currentNodeIds = new Set(allNodes.map(node => node.id));
+    // DFS to find all reachable nodes
+    const dfs = (nodeId: string) => {
+      if (visited.has(nodeId)) return;
+      visited.add(nodeId);
+      
+      // If this is not the stock-analyzer-node itself, add it to reachable nodes
+      if (nodeId !== id) {
+        reachableNodes.add(nodeId);
+      }
+      
+      // Find all outgoing edges from this node
+      const outgoingEdges = allEdges.filter(edge => edge.source === nodeId);
+      for (const edge of outgoingEdges) {
+        dfs(edge.target);
+      }
+    };
+    
+    // Start DFS from the stock-analyzer-node
+    dfs(id);
+    
+    // Filter nodes to only include reachable ones
+    const agentNodes = allNodes.filter(node => reachableNodes.has(node.id));
+    
+    // Filter edges to only include connections between reachable nodes (plus the stock-analyzer-node)
+    const reachableNodeIds = new Set([id, ...reachableNodes]);
     const validEdges = allEdges.filter(edge => 
-      currentNodeIds.has(edge.source) && currentNodeIds.has(edge.target)
+      reachableNodeIds.has(edge.source) && reachableNodeIds.has(edge.target)
     );
 
     // Collect agent models from all agent nodes
@@ -195,8 +219,8 @@ export function StockTickersNode({
         id={id}
         selected={selected}
         isConnectable={isConnectable}
-        icon={<List className="h-5 w-5" />}
-        name={data.name || "Stock Tickers"}
+        icon={<ChartLine className="h-5 w-5" />}
+        name={data.name || "Stock Analyzer"}
         description={data.description}
         hasLeftHandle={false}
       >

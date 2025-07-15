@@ -3,8 +3,9 @@ import { Edge, type NodeTypes } from '@xyflow/react';
 import { AgentNode } from './components/agent-node';
 import { InvestmentReportNode } from './components/investment-report-node';
 import { JsonOutputNode } from './components/json-output-node';
+import { PortfolioAnalyzerNode } from './components/portfolio-analyzer-node';
 import { PortfolioManagerNode } from './components/portfolio-manager-node';
-import { StockTickersNode } from './components/stock-tickers-node';
+import { StockAnalyzerNode } from './components/stock-analyzer-node';
 import { type AppNode } from './types';
 
 // Types
@@ -50,8 +51,9 @@ export const initialEdges: Edge[] = [
 
 export const nodeTypes = {
   'agent-node': AgentNode,
-  'portfolio-manager-node': PortfolioManagerNode,
   'investment-report-node': InvestmentReportNode,
   'json-output-node': JsonOutputNode,
-  'stock-tickers-node': StockTickersNode,
+  'portfolio-analyzer-node': PortfolioAnalyzerNode,
+  'portfolio-manager-node': PortfolioManagerNode,
+  'stock-analyzer-node': StockAnalyzerNode,
 } satisfies NodeTypes;
