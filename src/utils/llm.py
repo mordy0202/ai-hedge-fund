@@ -33,11 +33,9 @@ def call_llm(
     # Extract model configuration if state is provided and agent_name is available
     if state and agent_name:
         model_name, model_provider = get_agent_model_config(state, agent_name)
-    
-    # Fallback to defaults if still not provided
-    if not model_name:
+    else:
+        # Use system defaults when no state or agent_name is provided
         model_name = "gpt-4.1"
-    if not model_provider:
         model_provider = "OPENAI"
 
     model_info = get_model_info(model_name, model_provider)
@@ -120,23 +118,20 @@ def get_agent_model_config(state, agent_name):
     """
     Get model configuration for a specific agent from the state.
     Falls back to global model configuration if agent-specific config is not available.
+    Always returns valid model_name and model_provider values.
     """
     request = state.get("metadata", {}).get("request")
-
-    if agent_name == 'portfolio_manager':
-        # Get the model and provider from state metadata
-        model_name = state.get("metadata", {}).get("model_name", "gpt-4.1")
-        model_provider = state.get("metadata", {}).get("model_provider", "OPENAI")
-        return model_name, model_provider
     
     if request and hasattr(request, 'get_agent_model_config'):
         # Get agent-specific model configuration
         model_name, model_provider = request.get_agent_model_config(agent_name)
-        return model_name, model_provider.value if hasattr(model_provider, 'value') else str(model_provider)
+        # Ensure we have valid values
+        if model_name and model_provider:
+            return model_name, model_provider.value if hasattr(model_provider, 'value') else str(model_provider)
     
-    # Fall back to global configuration
-    model_name = state.get("metadata", {}).get("model_name", "gpt-4.1")
-    model_provider = state.get("metadata", {}).get("model_provider", "OPENAI")
+    # Fall back to global configuration (system defaults)
+    model_name = state.get("metadata", {}).get("model_name") or "gpt-4.1"
+    model_provider = state.get("metadata", {}).get("model_provider") or "OPENAI"
     
     # Convert enum to string if necessary
     if hasattr(model_provider, 'value'):

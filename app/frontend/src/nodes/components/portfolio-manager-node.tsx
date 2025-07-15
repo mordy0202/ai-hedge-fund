@@ -2,13 +2,12 @@ import { type NodeProps } from '@xyflow/react';
 import { Brain } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
 import { ModelSelector } from '@/components/ui/llm-selector';
 import { useFlowContext } from '@/contexts/flow-context';
 import { useNodeContext } from '@/contexts/node-context';
-import { getModels, LanguageModel } from '@/data/models';
+import { getDefaultModel, getModels, LanguageModel } from '@/data/models';
 import { useNodeState } from '@/hooks/use-node-state';
 import { useOutputNodeConnection } from '@/hooks/use-output-node-connection';
 import { cn } from '@/lib/utils';
@@ -55,8 +54,16 @@ export function PortfolioManagerNode({
   useEffect(() => {
     const loadModels = async () => {
       try {
-        const models = await getModels();
+        const [models, defaultModel] = await Promise.all([
+          getModels(),
+          getDefaultModel()
+        ]);
         setAvailableModels(models);
+        
+        // Set default model if no model is currently selected
+        if (!selectedModel && defaultModel) {
+          setSelectedModel(defaultModel);
+        }
       } catch (error) {
         console.error('Failed to load models:', error);
         // Keep empty array as fallback
@@ -64,7 +71,7 @@ export function PortfolioManagerNode({
     };
 
     loadModels();
-  }, [setAvailableModels]);
+  }, [setAvailableModels, selectedModel, setSelectedModel]);
 
   // Update the node context when the model changes
   useEffect(() => {
@@ -77,10 +84,6 @@ export function PortfolioManagerNode({
 
   const handleModelChange = (model: LanguageModel | null) => {
     setSelectedModel(model);
-  };
-
-  const handleUseGlobalModel = () => {
-    setSelectedModel(null);
   };
   
   const outputNodeData = getOutputNodeDataForFlow(currentFlowId?.toString() || null);
@@ -103,22 +106,24 @@ export function PortfolioManagerNode({
       >
         <CardContent className="p-0">
           <div className="border-t border-border p-3">
-            <div className="flex flex-col gap-2">
-              <div className="text-subtitle text-primary flex items-center gap-1">
-                Status
-              </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <div className="text-subtitle text-primary flex items-center gap-1">
+                  Status
+                </div>
 
-              <div
-                className={cn(
-                  'text-foreground text-xs rounded p-2 border border-status',
-                  isInProgress ? 'gradient-animation' : getStatusColor(status)
-                )}
-              >
-                <span className="capitalize">
-                  {status.toLowerCase().replace(/_/g, ' ')}
-                </span>
+                <div
+                  className={cn(
+                    'text-foreground text-xs rounded p-2 border border-status',
+                    isInProgress ? 'gradient-animation' : getStatusColor(status)
+                  )}
+                >
+                  <span className="capitalize">
+                    {status.toLowerCase().replace(/_/g, ' ')}
+                  </span>
+                </div>
               </div>
-              
+                            
               <div className='flex flex-col gap-2'>
                 {outputNodeData && (
                   <Button
@@ -129,35 +134,17 @@ export function PortfolioManagerNode({
                   </Button>
                 )}
               </div>
-
-              <Accordion type="single" collapsible>
-                <AccordionItem value="advanced" className="border-none">
-                  <AccordionTrigger className="!text-subtitle text-primary">
-                    Advanced
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2">
-                    <div className="flex flex-col gap-2">
-                      <div className="text-subtitle text-primary flex items-center gap-1">
-                        Model
-                      </div>
-                      <ModelSelector
-                        models={availableModels}
-                        value={selectedModel?.model_name || ''}
-                        onChange={handleModelChange}
-                        placeholder="Auto"
-                      />
-                      {selectedModel && (
-                        <button
-                          onClick={handleUseGlobalModel}
-                          className="text-subtitle text-primary hover:text-foreground transition-colors text-left"
-                        >
-                          Reset to Auto
-                        </button>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              <div className="flex flex-col gap-2">
+                <div className="text-subtitle text-primary flex items-center gap-1">
+                  Model
+                </div>
+                <ModelSelector
+                  models={availableModels}
+                  value={selectedModel?.model_name || ''}
+                  onChange={handleModelChange}
+                  placeholder="Auto"
+                />
+              </div>
             </div>
           </div>
           <InvestmentReportDialog
