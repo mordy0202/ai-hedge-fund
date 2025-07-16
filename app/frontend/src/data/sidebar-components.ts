@@ -4,7 +4,6 @@ import {
   Brain,
   Calculator,
   ChartLine,
-  ChartPie,
   LucideIcon,
   Network,
   Play
@@ -36,7 +35,7 @@ export const getComponentGroups = async (): Promise<ComponentGroup[]> => {
       icon: Play,
       iconColor: "text-blue-500",
       items: [
-        { name: "Portfolio Input", icon: ChartPie },
+        // { name: "Portfolio Input", icon: ChartPie },
         { name: "Stock Input", icon: ChartLine },
       ]
     },
