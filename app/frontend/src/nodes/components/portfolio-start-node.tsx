@@ -1,17 +1,29 @@
 import { useReactFlow, type NodeProps } from '@xyflow/react';
-import { PieChart, Play, Plus, Square, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { ChevronDown, PieChart, Play, Plus, Square, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlowContext } from '@/contexts/flow-context';
 import { useNodeContext } from '@/contexts/node-context';
 import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
-import { formatKeyboardShortcut } from '@/lib/utils';
+import { cn, formatKeyboardShortcut } from '@/lib/utils';
 import { type PortfolioStartNode } from '../types';
 import { NodeShell } from './node-shell';
 
@@ -20,6 +32,11 @@ interface PortfolioPosition {
   quantity: string;
   tradePrice: string;
 }
+
+const runModes = [
+  { value: 'single', label: 'Single Analysis' },
+  { value: 'backtest', label: 'Backtester' },
+];
 
 export function PortfolioStartNode({
   data,
@@ -37,6 +54,8 @@ export function PortfolioStartNode({
     { ticker: '', quantity: '', tradePrice: '' },
   ]);
   const [initialCash, setInitialCash] = useNodeState(id, 'initialCash', '100000');
+  const [runMode, setRunMode] = useNodeState(id, 'runMode', 'single');
+  const [open, setOpen] = useState(false);
   
   const { currentFlowId } = useFlowContext();
   const nodeContext = useNodeContext();
@@ -230,33 +249,17 @@ export function PortfolioStartNode({
                 <div className="text-subtitle text-primary flex items-center gap-1">
                   Available Cash
                 </div>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-                      $
-                    </div>
-                    <Input
-                      type="text"
-                      placeholder="100,000"
-                      value={formatCurrency(initialCash)}
-                      onChange={handleInitialCashChange}
-                      className="pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
+                <div className="relative flex-1">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
+                    $
                   </div>
-                  <Button 
-                    size="icon" 
-                    variant="secondary"
-                    className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
-                    title={showAsProcessing ? "Stop" : `Run (${formatKeyboardShortcut('↵')})`}
-                    onClick={showAsProcessing ? handleStop : handlePlay}
-                    disabled={!canRunPortfolioAnalyzer && !showAsProcessing}
-                  >
-                    {showAsProcessing ? (
-                      <Square className="h-3.5 w-3.5" />
-                    ) : (
-                      <Play className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
+                  <Input
+                    type="text"
+                    placeholder="100,000"
+                    value={formatCurrency(initialCash)}
+                    onChange={handleInitialCashChange}
+                    className="pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
@@ -318,6 +321,67 @@ export function PortfolioStartNode({
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Position
+                  </Button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="text-subtitle text-primary flex items-center gap-1">
+                  Run
+                </div>
+                <div className="flex gap-2">
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="flex-1 justify-between h-10 px-3 py-2 bg-node border border-border hover:bg-accent"
+                      >
+                        <span className="text-subtitle">
+                          {runModes.find((mode) => mode.value === runMode)?.label || 'Single Analysis'}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-node border border-border shadow-lg">
+                      <Command className="bg-node">
+                        <CommandList className="bg-node">
+                          <CommandEmpty>No run mode found.</CommandEmpty>
+                          <CommandGroup>
+                            {runModes.map((mode) => (
+                              <CommandItem
+                                key={mode.value}
+                                value={mode.value}
+                                className={cn(
+                                  "cursor-pointer bg-node hover:bg-accent",
+                                  runMode === mode.value && "bg-blue-600/10 border-l-2 border-blue-500/50"
+                                )}
+                                onSelect={(currentValue) => {
+                                  setRunMode(currentValue);
+                                  setOpen(false);
+                                }}
+                              >
+                                {mode.label}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <Button 
+                    size="icon" 
+                    variant="secondary"
+                    className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                    title={showAsProcessing ? "Stop" : `Run (${formatKeyboardShortcut('↵')})`}
+                    onClick={showAsProcessing ? handleStop : handlePlay}
+                    disabled={!canRunPortfolioAnalyzer && !showAsProcessing}
+                  >
+                    {showAsProcessing ? (
+                      <Square className="h-3.5 w-3.5" />
+                    ) : (
+                      <Play className="h-3.5 w-3.5" />
+                    )}
                   </Button>
                 </div>
               </div>
