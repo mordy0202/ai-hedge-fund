@@ -34,8 +34,8 @@ interface PortfolioPosition {
 }
 
 const runModes = [
-  { value: 'single', label: 'Single Analysis' },
-  { value: 'backtest', label: 'Backtester' },
+  { value: 'single', label: 'Single Run' },
+  { value: 'backtest', label: 'Backtest' },
 ];
 
 export function PortfolioStartNode({
@@ -354,7 +354,7 @@ export function PortfolioStartNode({
                                 value={mode.value}
                                 className={cn(
                                   "cursor-pointer bg-node hover:bg-accent",
-                                  runMode === mode.value && "bg-blue-600/10 border-l-2 border-blue-500/50"
+                                  runMode === mode.value
                                 )}
                                 onSelect={(currentValue) => {
                                   setRunMode(currentValue);
