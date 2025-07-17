@@ -26,6 +26,22 @@ export interface AgentNodeData {
 export interface OutputNodeData {
   decisions: Record<string, any>;
   analyst_signals: Record<string, any>;
+  // Backtest-specific fields
+  performance_metrics?: {
+    sharpe_ratio?: number;
+    sortino_ratio?: number;
+    max_drawdown?: number;
+    max_drawdown_date?: string;
+    long_short_ratio?: number;
+    gross_exposure?: number;
+    net_exposure?: number;
+  };
+  final_portfolio?: {
+    cash: number;
+    margin_used: number;
+    positions: Record<string, any>;
+  };
+  total_days?: number;
 }
 
 // Default agent node state

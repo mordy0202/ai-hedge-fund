@@ -1,5 +1,7 @@
 import { useNodeContext } from '@/contexts/node-context';
 import { api } from '@/services/api';
+import { backtestApi } from '@/services/backtest-api';
+import { BacktestRequest, HedgeFundRequest } from '@/services/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Connection state for a specific flow
@@ -51,128 +53,66 @@ class FlowConnectionManager {
     this.notifyListeners();
   }
 
-  // Get all active connections
-  getActiveConnections(): Map<string, FlowConnectionInfo> {
-    return new Map(this.connections);
-  }
-
-  // Check if any flow is processing
-  hasActiveConnections(): boolean {
-    return Array.from(this.connections.values()).some(
-      conn => conn.state === 'connecting' || conn.state === 'connected'
-    );
-  }
-
   // Add listener for connection changes
-  addListener(listener: () => void): () => void {
+  addListener(listener: () => void): void {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
   }
 
+  // Remove listener
+  removeListener(listener: () => void): void {
+    this.listeners.delete(listener);
+  }
+
+  // Notify all listeners of changes
   private notifyListeners(): void {
     this.listeners.forEach(listener => listener());
-  }
-
-  // Cleanup stale connections (older than 5 minutes with no activity)
-  cleanupStaleConnections(): void {
-    const now = Date.now();
-    const staleThreshold = 5 * 60 * 1000; // 5 minutes
-
-    for (const [flowId, connection] of this.connections.entries()) {
-      if (now - connection.lastActivity > staleThreshold && 
-          (connection.state === 'connecting' || connection.state === 'connected')) {
-        console.warn(`Cleaning up stale connection for flow ${flowId}`);
-        this.removeConnection(flowId);
-      }
-    }
   }
 }
 
 // Global instance
-const flowConnectionManager = new FlowConnectionManager();
+export const flowConnectionManager = new FlowConnectionManager();
 
-// Cleanup stale connections every minute
-setInterval(() => {
-  flowConnectionManager.cleanupStaleConnections();
-}, 60000);
-
-// Hook for managing flow connections
+/**
+ * Hook for managing flow connections and execution
+ * @param flowId The ID of the flow to manage
+ * @returns Connection state and control functions
+ */
 export function useFlowConnection(flowId: string | null) {
   const nodeContext = useNodeContext();
   const [, forceUpdate] = useState({});
-  const mountedRef = useRef(true);
+  const listenerRef = useRef<() => void>();
 
-  // Get current connection info
-  const connectionInfo = flowId ? flowConnectionManager.getConnection(flowId) : {
-    state: 'idle' as FlowConnectionState,
-    abortController: null,
-    startTime: 0,
-    lastActivity: 0,
-  };
-
-  // Listen for connection changes
+  // Force re-render when connections change
   useEffect(() => {
-    if (!flowId) return;
-
-    const unsubscribe = flowConnectionManager.addListener(() => {
-      if (mountedRef.current) {
-        forceUpdate({});
-      }
-    });
-
-    return unsubscribe;
-  }, [flowId]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    mountedRef.current = true;
+    const listener = () => forceUpdate({});
+    listenerRef.current = listener;
+    flowConnectionManager.addListener(listener);
+    
     return () => {
-      mountedRef.current = false;
+      if (listenerRef.current) {
+        flowConnectionManager.removeListener(listenerRef.current);
+      }
     };
   }, []);
 
-  // Get agent states for current flow to derive processing status
-  const agentNodeData = nodeContext.getAgentNodeDataForFlow(flowId);
-  const isProcessing = Object.values(agentNodeData).some(
-    agent => agent.status === 'IN_PROGRESS'
-  );
-
-  // Derived state
-  const isConnected = connectionInfo.state === 'connected';
-  const isConnecting = connectionInfo.state === 'connecting';
-  const hasError = connectionInfo.state === 'error';
-  const canRun = !isConnecting && !isConnected && flowId !== null;
+  // Get current connection state
+  const connection = flowId ? flowConnectionManager.getConnection(flowId) : null;
+  const isConnecting = connection?.state === 'connecting';
+  const isConnected = connection?.state === 'connected';
+  const isError = connection?.state === 'error';
+  const isCompleted = connection?.state === 'completed';
+  
+  // Check if any agents are currently processing
+  const isProcessing = flowId ? (() => {
+    const agentData = nodeContext.getAgentNodeDataForFlow(flowId);
+    return Object.values(agentData).some(agent => agent.status === 'IN_PROGRESS');
+  })() : false;
+  
+  // Can run if we have a flow ID and we're not already running
+  const canRun = Boolean(flowId && !isConnecting && !isConnected && !isProcessing);
 
   // Start a flow connection
-  const runFlow = useCallback((
-    params: {
-      tickers: string[];
-      graph_nodes: Array<{
-        id: string;
-        type?: string;
-        data?: any;
-        position?: { x: number; y: number };
-      }>;
-      graph_edges: Array<{
-        id: string;
-        source: string;
-        target: string;
-        type?: string;
-        data?: any;
-      }>;
-      agent_models?: any[];
-      start_date?: string;
-      end_date?: string;
-      model_name?: string;
-      model_provider?: any;
-      initial_cash?: number;
-      portfolio_positions?: Array<{
-        ticker: string;
-        quantity: number;
-        trade_price: number;
-      }>;
-    }
-  ) => {
+  const runFlow = useCallback((params: HedgeFundRequest) => {
     if (!flowId || !canRun) return;
 
     // Reset node states for this flow
@@ -198,7 +138,43 @@ export function useFlowConnection(flowId: string | null) {
       // For now, we'll rely on the complete event from the SSE stream
       
     } catch (error) {
-      console.error('Failed to start flow:', error);
+      console.error('Failed to start hedge fund run:', error);
+      flowConnectionManager.setConnection(flowId, {
+        state: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        abortController: null,
+      });
+    }
+  }, [flowId, canRun, nodeContext]);
+
+  // Start a backtest connection
+  const runBacktest = useCallback((params: BacktestRequest) => {
+    if (!flowId || !canRun) return;
+
+    // Reset node states for this flow
+    nodeContext.resetAllNodes(flowId);
+
+    // Set connecting state
+    flowConnectionManager.setConnection(flowId, {
+      state: 'connecting',
+      startTime: Date.now(),
+    });
+
+    try {
+      // Start the backtest API call
+      const abortController = backtestApi.runBacktest(params, nodeContext, flowId);
+
+      // Update connection with abort controller
+      flowConnectionManager.setConnection(flowId, {
+        state: 'connected',
+        abortController,
+      });
+
+      // TODO: We should enhance the API to notify us when the connection completes
+      // For now, we'll rely on the complete event from the SSE stream
+      
+    } catch (error) {
+      console.error('Failed to start backtest:', error);
       flowConnectionManager.setConnection(flowId, {
         state: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -211,9 +187,15 @@ export function useFlowConnection(flowId: string | null) {
   const stopFlow = useCallback(() => {
     if (!flowId) return;
 
+    console.log(`[stopFlow] Stopping flow ${flowId}`);
     const connection = flowConnectionManager.getConnection(flowId);
+    console.log(`[stopFlow] Current connection state:`, connection);
+    
     if (connection.abortController) {
+      console.log(`[stopFlow] Calling abort controller for flow ${flowId}`);
       connection.abortController();
+    } else {
+      console.log(`[stopFlow] No abort controller found for flow ${flowId}`);
     }
 
     // Reset node states when stopping
@@ -224,95 +206,46 @@ export function useFlowConnection(flowId: string | null) {
       state: 'idle',
       abortController: null,
     });
+    
+    console.log(`[stopFlow] Flow ${flowId} stopped and reset to idle`);
   }, [flowId, nodeContext]);
 
   // Recover from stale states (called when loading a flow)
   const recoverFlowState = useCallback(() => {
     if (!flowId) return;
 
-    const agentData = nodeContext.getAgentNodeDataForFlow(flowId);
     const connection = flowConnectionManager.getConnection(flowId);
-
-    // If we have IN_PROGRESS states but no active connection, reset them
-    const hasInProgressNodes = Object.values(agentData).some(
-      agent => agent.status === 'IN_PROGRESS'
-    );
-
-    if (hasInProgressNodes && connection.state === 'idle') {      
-      // Reset IN_PROGRESS nodes to IDLE, keep final states
-      Object.entries(agentData).forEach(([nodeId, data]) => {
-        if (data.status === 'IN_PROGRESS') {
-          nodeContext.updateAgentNode(flowId, nodeId, {
-            ...data,
-            status: 'IDLE',
-          });
-        }
-      });
+    
+    // If we think we're connected but have no processing nodes, we're probably stale
+    if ((connection.state === 'connected' || connection.state === 'connecting') && !isProcessing) {
+      // Check if the connection is old (more than 5 minutes)
+      const isStale = Date.now() - connection.lastActivity > 5 * 60 * 1000;
+      
+      if (isStale) {
+        console.log(`Recovering stale connection for flow ${flowId}`);
+        flowConnectionManager.setConnection(flowId, {
+          state: 'idle',
+          abortController: null,
+        });
+      }
     }
-  }, [flowId, nodeContext]);
-
-  // Handle flow completion (should be called by SSE complete event)
-  const handleFlowComplete = useCallback(() => {
-    if (!flowId) return;
-
-    flowConnectionManager.setConnection(flowId, {
-      state: 'completed',
-      abortController: null,
-    });
-
-    // Optional: Auto-cleanup completed connections after a delay
-    setTimeout(() => {
-      if (flowConnectionManager.getConnection(flowId).state === 'completed') {
-        flowConnectionManager.setConnection(flowId, {
-          state: 'idle',
-        });
-      }
-    }, 30000); // 30 seconds
-  }, [flowId]);
-
-  // Handle flow error (should be called by SSE error event)
-  const handleFlowError = useCallback((error: string) => {
-    if (!flowId) return;
-
-    flowConnectionManager.setConnection(flowId, {
-      state: 'error',
-      error,
-      abortController: null,
-    });
-
-    // Auto-reset error state after a delay
-    setTimeout(() => {
-      if (flowConnectionManager.getConnection(flowId).state === 'error') {
-        flowConnectionManager.setConnection(flowId, {
-          state: 'idle',
-          error: undefined,
-        });
-      }
-    }, 10000); // 10 seconds
-  }, [flowId]);
+  }, [flowId, isProcessing]);
 
   return {
-    // Connection state
-    connectionState: connectionInfo.state,
-    isConnected,
+    // State
     isConnecting,
+    isConnected,
+    isError,
+    isCompleted,
     isProcessing,
-    hasError,
-    error: connectionInfo.error,
     canRun,
-    startTime: connectionInfo.startTime,
-    lastActivity: connectionInfo.lastActivity,
-
+    error: connection?.error,
+    
     // Actions
     runFlow,
+    runBacktest,
     stopFlow,
     recoverFlowState,
-    handleFlowComplete,
-    handleFlowError,
-
-    // Global state
-    hasActiveConnections: flowConnectionManager.hasActiveConnections(),
-    activeConnections: flowConnectionManager.getActiveConnections(),
   };
 }
 
@@ -332,6 +265,3 @@ export function useFlowConnectionState(flowId: string | null) {
 
   return flowId ? flowConnectionManager.getConnection(flowId) : null;
 }
-
-// Export manager for advanced use cases
-export { flowConnectionManager };

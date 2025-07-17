@@ -72,6 +72,7 @@ export function PortfolioStartNode({
     isProcessing,
     canRun,
     runFlow,
+    runBacktest,
     stopFlow,
     recoverFlowState
   } = useFlowConnection(flowId);
@@ -211,28 +212,53 @@ export function PortfolioStartNode({
     
     // For now, extract tickers for current API compatibility
     const tickerList = positions.map(pos => pos.ticker.trim()).filter(ticker => ticker !== '');
-        
-    // Use the flow connection hook to run the flow
-    runFlow({
-      tickers: tickerList,
-      // Send the actual graph structure instead of just selected agents
-      graph_nodes: agentNodes.map(node => ({
-        id: node.id,
-        type: node.type,
-        data: node.data,
-        position: node.position
-      })),
-      graph_edges: validEdges,
-      agent_models: agentModels,
-      // No global model - each agent uses its own model or system default
-      model_name: undefined,
-      model_provider: undefined,
-      start_date: threeMonthsAgo.toISOString().split('T')[0],
-      end_date: today.toISOString().split('T')[0],
-      initial_cash: parseFloat(initialCash) || 100000,
-      // Pass portfolio positions to backend
-      portfolio_positions: portfolioPositions,
-    });
+    
+    // Check if we're in backtest mode
+    if (runMode === 'backtest') {
+      // Use the flow connection hook to run the backtest with same structure as regular run
+      runBacktest({
+        tickers: tickerList,
+        // Send the actual graph structure instead of just selected analysts
+        graph_nodes: agentNodes.map(node => ({
+          id: node.id,
+          type: node.type,
+          data: node.data,
+          position: node.position
+        })),
+        graph_edges: validEdges,
+        agent_models: agentModels,
+        start_date: threeMonthsAgo.toISOString().split('T')[0],
+        end_date: today.toISOString().split('T')[0],
+        initial_capital: parseFloat(initialCash) || 100000,
+        margin_requirement: 0.0, // Default margin requirement
+        model_name: undefined,
+        model_provider: undefined,
+        // Pass portfolio positions to backend
+        portfolio_positions: portfolioPositions,
+      });
+    } else {
+      // Use the regular hedge fund API for single run
+      runFlow({
+        tickers: tickerList,
+        // Send the actual graph structure instead of just selected agents
+        graph_nodes: agentNodes.map(node => ({
+          id: node.id,
+          type: node.type,
+          data: node.data,
+          position: node.position
+        })),
+        graph_edges: validEdges,
+        agent_models: agentModels,
+        // No global model - each agent uses its own model or system default
+        model_name: undefined,
+        model_provider: undefined,
+        start_date: threeMonthsAgo.toISOString().split('T')[0],
+        end_date: today.toISOString().split('T')[0],
+        initial_cash: parseFloat(initialCash) || 100000,
+        // Pass portfolio positions to backend
+        portfolio_positions: portfolioPositions,
+      });
+    }
   };
 
   // Determine if we're processing (connecting, connected, or any agents running)

@@ -25,16 +25,6 @@ class PortfolioPosition(BaseModel):
     trade_price: float
 
 
-class HedgeFundResponse(BaseModel):
-    decisions: dict
-    analyst_signals: dict
-
-
-class ErrorResponse(BaseModel):
-    message: str
-    error: str | None = None
-
-
 class GraphNode(BaseModel):
     id: str
     type: Optional[str] = None
@@ -50,24 +40,26 @@ class GraphEdge(BaseModel):
     data: Optional[Dict[str, Any]] = None
 
 
-class HedgeFundRequest(BaseModel):
+class HedgeFundResponse(BaseModel):
+    decisions: dict
+    analyst_signals: dict
+
+
+class ErrorResponse(BaseModel):
+    message: str
+    error: str | None = None
+
+
+# Base class for shared fields between HedgeFundRequest and BacktestRequest
+class BaseHedgeFundRequest(BaseModel):
     tickers: List[str]
     graph_nodes: List[GraphNode]
     graph_edges: List[GraphEdge]
     agent_models: Optional[List[AgentModelConfig]] = None
-    end_date: Optional[str] = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
-    start_date: Optional[str] = None
-    model_name: Optional[str] = "gpt-4.1"  # Default to gpt-4.1 when None/undefined
-    model_provider: Optional[ModelProvider] = ModelProvider.OPENAI  # Default to OPENAI when None/undefined
-    initial_cash: float = 100000.0
+    model_name: Optional[str] = "gpt-4.1"
+    model_provider: Optional[ModelProvider] = ModelProvider.OPENAI
     margin_requirement: float = 0.0
     portfolio_positions: Optional[List[PortfolioPosition]] = None
-
-    def get_start_date(self) -> str:
-        """Calculate start date if not provided"""
-        if self.start_date:
-            return self.start_date
-        return (datetime.strptime(self.end_date, "%Y-%m-%d") - timedelta(days=90)).strftime("%Y-%m-%d")
 
     def get_agent_ids(self) -> List[str]:
         """Extract agent IDs from graph structure"""
@@ -89,6 +81,55 @@ class HedgeFundRequest(BaseModel):
                     )
         # Fallback to global model settings
         return self.model_name, self.model_provider
+
+
+class BacktestRequest(BaseHedgeFundRequest):
+    start_date: str
+    end_date: str
+    initial_capital: float = 100000.0
+
+
+class BacktestDayResult(BaseModel):
+    date: str
+    portfolio_value: float
+    cash: float
+    decisions: Dict[str, Any]
+    executed_trades: Dict[str, int]
+    analyst_signals: Dict[str, Any]
+    current_prices: Dict[str, float]
+    long_exposure: float
+    short_exposure: float
+    gross_exposure: float
+    net_exposure: float
+    long_short_ratio: float
+
+
+class BacktestPerformanceMetrics(BaseModel):
+    sharpe_ratio: Optional[float] = None
+    sortino_ratio: Optional[float] = None
+    max_drawdown: Optional[float] = None
+    max_drawdown_date: Optional[str] = None
+    long_short_ratio: Optional[float] = None
+    gross_exposure: Optional[float] = None
+    net_exposure: Optional[float] = None
+
+
+class BacktestResponse(BaseModel):
+    results: List[BacktestDayResult]
+    performance_metrics: BacktestPerformanceMetrics
+    final_portfolio: Dict[str, Any]
+
+
+class HedgeFundRequest(BaseHedgeFundRequest):
+    end_date: Optional[str] = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
+    start_date: Optional[str] = None
+    initial_cash: float = 100000.0
+
+    def get_start_date(self) -> str:
+        """Calculate start date if not provided"""
+        if self.start_date:
+            return self.start_date
+        return (datetime.strptime(self.end_date, "%Y-%m-%d") - timedelta(days=90)).strftime("%Y-%m-%d")
 
 
 # Flow-related schemas

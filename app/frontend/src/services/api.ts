@@ -3,48 +3,9 @@ import { Agent } from '@/data/agents';
 import { LanguageModel } from '@/data/models';
 import { extractBaseAgentKey } from '@/data/node-mappings';
 import { flowConnectionManager } from '@/hooks/use-flow-connection';
-import { ModelProvider } from '@/services/types';
-
-interface AgentModelConfig {
-  agent_id: string;
-  model_name?: string;
-  model_provider?: ModelProvider;
-}
-
-interface GraphNode {
-  id: string;
-  type?: string;
-  data?: any;
-  position?: { x: number; y: number };
-}
-
-interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  type?: string;
-  data?: any;
-}
-
-interface PortfolioPosition {
-  ticker: string;
-  quantity: number;
-  trade_price: number;
-}
-
-interface HedgeFundRequest {
-  tickers: string[];
-  graph_nodes: GraphNode[];
-  graph_edges: GraphEdge[];
-  agent_models?: AgentModelConfig[];
-  end_date?: string;
-  start_date?: string;
-  model_name?: string; // System default when agents don't specify their own model
-  model_provider?: ModelProvider; // System default when agents don't specify their own model
-  initial_cash?: number;
-  margin_requirement?: number;
-  portfolio_positions?: PortfolioPosition[];
-}
+import {
+  HedgeFundRequest
+} from '@/services/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
