@@ -22,7 +22,7 @@ export function RightSidebar({
   const { width, isDragging, elementRef, startResize } = useResizable({
     defaultWidth: 280,
     minWidth: 200,
-    maxWidth: 500,
+    maxWidth: window.innerWidth * .90,
     side: 'right',
   });
   
