@@ -1,7 +1,8 @@
+import { useLayoutContext } from '@/contexts/layout-context';
 import { useResizable } from '@/hooks/use-resizable';
 import { cn } from '@/lib/utils';
 import { FileText, X } from 'lucide-react';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Button } from '../../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { OutputTab } from './tabs';
@@ -20,6 +21,8 @@ export function BottomPanel({
   onToggleCollapse,
   onHeightChange,
 }: BottomPanelProps) {
+  const { currentBottomTab, setBottomPanelTab } = useLayoutContext();
+  
   // Use our custom hooks for vertical resizing
   const { height, isDragging, elementRef, startResize } = useResizable({
     defaultHeight: 300,
@@ -32,8 +35,6 @@ export function BottomPanel({
   useEffect(() => {
     onHeightChange?.(height);
   }, [height, onHeightChange]);
-  
-  const [activeTab, setActiveTab] = useState('output');
 
   if (isCollapsed) {
     return null;
@@ -60,16 +61,9 @@ export function BottomPanel({
 
       {/* Header with tabs and close button */}
       <div className="flex items-center justify-between border-b px-4 py-2">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+        <Tabs value={currentBottomTab} onValueChange={setBottomPanelTab} className="flex-1">
           <div className="flex items-center justify-between">
             <TabsList className="bg-transparent border-none p-0 h-auto">
-              {/* <TabsTrigger 
-                value="terminal" 
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
-              >
-                <Terminal size={14} />
-                Terminal
-              </TabsTrigger> */}
               <TabsTrigger 
                 value="output"
                 className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
@@ -77,20 +71,6 @@ export function BottomPanel({
                 <FileText size={14} />
                 Output
               </TabsTrigger>
-              {/* <TabsTrigger 
-                value="debug"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
-              >
-                <Bug size={14} />
-                Debug Console
-              </TabsTrigger>
-              <TabsTrigger 
-                value="problems"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm data-[state=active]:active-item text-muted-foreground"
-              >
-                <AlertCircle size={14} />
-                Problems
-              </TabsTrigger> */}
             </TabsList>
             
             <Button
@@ -108,22 +88,10 @@ export function BottomPanel({
 
       {/* Content area */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <Tabs value={activeTab} className="h-full">
-          {/* <TabsContent value="terminal" className="h-full m-0 p-4">
-            <TerminalTab className="h-full" />
-          </TabsContent>
-           */}
+        <Tabs value={currentBottomTab} className="h-full">
           <TabsContent value="output" className="h-full m-0 p-4">
             <OutputTab className="h-full" />
           </TabsContent>
-          
-          {/* <TabsContent value="debug" className="h-full m-0 p-4">
-            <DebugConsoleTab className="h-full" />
-          </TabsContent>
-          
-          <TabsContent value="problems" className="h-full m-0 p-4">
-            <ProblemsTab className="h-full" />
-          </TabsContent> */}
         </Tabs>
       </div>
     </div>

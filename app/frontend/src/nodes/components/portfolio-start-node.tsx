@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFlowContext } from '@/contexts/flow-context';
+import { useLayoutContext } from '@/contexts/layout-context';
 import { useNodeContext } from '@/contexts/node-context';
 import { useFlowConnection } from '@/hooks/use-flow-connection';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
@@ -61,6 +62,7 @@ export function PortfolioStartNode({
   const nodeContext = useNodeContext();
   const { getAllAgentModels } = nodeContext;
   const { getNodes, getEdges } = useReactFlow();
+  const { expandBottomPanel, setBottomPanelTab } = useLayoutContext();
   
   // Use the new flow connection hook
   const flowId = currentFlowId?.toString() || null;
@@ -143,6 +145,10 @@ export function PortfolioStartNode({
   };
 
   const handlePlay = () => {
+    // Expand bottom panel and set to output tab
+    expandBottomPanel();
+    setBottomPanelTab('output');
+    
     // Get the current flow's nodes and edges
     const allNodes = getNodes();
     const allEdges = getEdges();
