@@ -70,7 +70,7 @@ export function NodeShell({
             </div>
           </CardHeader>
           {description && (
-            <div className="px-3 py-2 text-subtitle text-primary">
+            <div className="px-3 py-2 text-subtitle text-primary text-left">
               {description}
             </div>
           )}

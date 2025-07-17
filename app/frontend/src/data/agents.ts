@@ -4,6 +4,7 @@ export interface Agent {
   key: string;
   display_name: string;
   description: string;
+  investing_style: string;
   order: number;
 }
 

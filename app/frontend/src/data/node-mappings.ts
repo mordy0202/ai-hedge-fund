@@ -48,7 +48,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Portfolio Input",
-        description: "Start Node",
+        description: "Enter your portfolio positions with ticker symbols, quantities, trade prices, and available cash",
         status: "Idle",
       },
     }),
@@ -60,7 +60,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Portfolio Manager",
-        description: "End Node",
+        description: "Generates investment decisions and manages the portfolio based on input from analysts",
         status: "Idle",
       },
     }),
@@ -72,7 +72,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Stock Input",
-        description: "Start Node",
+        description: "Enter individual stocks to get detailed investment insights",
         status: "Idle",
       },
     }),
@@ -98,7 +98,7 @@ const getNodeTypeDefinitions = async (): Promise<Record<string, NodeTypeDefiniti
         position,
         data: {
           name: agent.display_name,
-          description: agent.description || "",
+          description: agent.investing_style || "",
           status: "Idle",
         },
       }),

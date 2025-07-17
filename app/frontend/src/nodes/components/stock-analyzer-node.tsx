@@ -31,7 +31,6 @@ export function StockAnalyzerNode({
   const [tickers, setTickers] = useNodeState(id, 'tickers', 'AAPL,NVDA,TSLA');
   const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
   const [endDate, setEndDate] = useNodeState(id, 'endDate', today.toISOString().split('T')[0]);
-  const [initialCash, setInitialCash] = useNodeState(id, 'initialCash', '100000');
   
   const { currentFlowId } = useFlowContext();
   const nodeContext = useNodeContext();
@@ -87,12 +86,6 @@ export function StockAnalyzerNode({
 
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndDate(e.target.value);
-  };
-
-  const handleInitialCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove non-numeric characters except decimal point
-    const numericValue = e.target.value.replace(/[^0-9.]/g, '');
-    setInitialCash(numericValue);
   };
 
   // Format the display value with commas
@@ -179,7 +172,6 @@ export function StockAnalyzerNode({
       model_provider: undefined,
       start_date: startDate,
       end_date: endDate,
-      initial_cash: parseFloat(initialCash) || 100000,
     });
   };
 
@@ -233,24 +225,6 @@ export function StockAnalyzerNode({
                   </Button>
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-subtitle text-primary flex items-center gap-1">
-                  Initial Cash
-                </div>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-                    $
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="100,000"
-                    value={formatCurrency(initialCash)}
-                    onChange={handleInitialCashChange}
-                    className="pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-              </div>
-
               <Accordion type="single" collapsible>
                 <AccordionItem value="advanced" className="border-none">
                   <AccordionTrigger className="!text-subtitle text-primary">
