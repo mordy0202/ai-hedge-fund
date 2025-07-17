@@ -60,7 +60,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Portfolio Manager",
-        description: "Generates investment decisions and manages the portfolio based on input from analysts",
+        description: "Generates investment decisions based on input from analysts",
         status: "Idle",
       },
     }),
