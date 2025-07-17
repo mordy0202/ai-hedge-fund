@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { extractBaseAgentKey } from '@/data/node-mappings';
 import { createAgentDisplayNames } from '@/utils/text-utils';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -92,7 +93,7 @@ export function InvestmentReportDialog({
   const connectedUniqueAgentIds = Array.from(connectedAgentIds);
   const agents = Object.keys(outputNodeData.analyst_signals || {})
     .filter(agent => 
-      agent !== 'risk_management_agent' && connectedUniqueAgentIds.includes(agent)
+      extractBaseAgentKey(agent) !== 'risk_management_agent' && connectedUniqueAgentIds.includes(agent)
     );
 
   const agentDisplayNames = createAgentDisplayNames(agents);
@@ -128,7 +129,7 @@ export function InvestmentReportDialog({
                   <TableBody>
                     {tickers.map(ticker => {
                       const decision = outputNodeData.decisions[ticker];
-                      const currentPrice = outputNodeData.analyst_signals.risk_management_agent?.[ticker]?.current_price || 'N/A';
+                      const currentPrice = outputNodeData.current_prices?.[ticker] || 'N/A';
                       return (
                         <TableRow key={ticker}>
                           <TableCell className="font-medium">{ticker}</TableCell>

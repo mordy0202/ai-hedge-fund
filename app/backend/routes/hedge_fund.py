@@ -122,6 +122,7 @@ async def run_hedge_fund(request_data: HedgeFundRequest, request: Request):
                     data={
                         "decisions": parse_hedge_fund_response(result.get("messages", [])[-1].content),
                         "analyst_signals": result.get("data", {}).get("analyst_signals", {}),
+                        "current_prices": result.get("data", {}).get("current_prices", {}),
                     }
                 )
                 yield final_data.to_sse()

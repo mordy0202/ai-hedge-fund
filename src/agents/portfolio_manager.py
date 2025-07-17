@@ -63,6 +63,9 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
                 ticker_signals[agent] = {"signal": signals[ticker]["signal"], "confidence": signals[ticker]["confidence"]}
         signals_by_ticker[ticker] = ticker_signals
 
+    # Add current_prices to the state data so it's available throughout the workflow
+    state["data"]["current_prices"] = current_prices
+
     progress.update_status(agent_id, None, "Generating trading decisions")
 
     # Generate the trading decision
