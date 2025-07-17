@@ -48,7 +48,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Portfolio Input",
-        description: "Enter your portfolio positions with ticker symbols, quantities, trade prices, and available cash",
+        description: "Enter your portfolio including tickers, owned shares, trade prices, and available cash.  Connect this node to Analysts.",
         status: "Idle",
       },
     }),
@@ -60,7 +60,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Portfolio Manager",
-        description: "Generates investment decisions based on input from analysts",
+        description: "Generates investment decisions based on input from Analysts",
         status: "Idle",
       },
     }),
@@ -72,7 +72,7 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       position,
       data: {
         name: "Stock Input",
-        description: "Enter individual stocks to get detailed investment insights",
+        description: "Enter individual stocks and connect this node to Analysts",
         status: "Idle",
       },
     }),
