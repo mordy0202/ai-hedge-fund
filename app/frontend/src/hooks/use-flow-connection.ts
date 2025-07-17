@@ -166,6 +166,11 @@ export function useFlowConnection(flowId: string | null) {
       model_name?: string;
       model_provider?: any;
       initial_cash?: number;
+      portfolio_positions?: Array<{
+        ticker: string;
+        quantity: number;
+        trade_price: number;
+      }>;
     }
   ) => {
     if (!flowId || !canRun) return;

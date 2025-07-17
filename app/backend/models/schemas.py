@@ -19,6 +19,12 @@ class AgentModelConfig(BaseModel):
     model_provider: Optional[ModelProvider] = None
 
 
+class PortfolioPosition(BaseModel):
+    ticker: str
+    quantity: float
+    trade_price: float
+
+
 class HedgeFundResponse(BaseModel):
     decisions: dict
     analyst_signals: dict
@@ -55,6 +61,7 @@ class HedgeFundRequest(BaseModel):
     model_provider: Optional[ModelProvider] = ModelProvider.OPENAI  # Default to OPENAI when None/undefined
     initial_cash: float = 100000.0
     margin_requirement: float = 0.0
+    portfolio_positions: Optional[List[PortfolioPosition]] = None
 
     def get_start_date(self) -> str:
         """Calculate start date if not provided"""

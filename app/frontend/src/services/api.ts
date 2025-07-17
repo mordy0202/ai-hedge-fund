@@ -26,6 +26,12 @@ interface GraphEdge {
   data?: any;
 }
 
+interface PortfolioPosition {
+  ticker: string;
+  quantity: number;
+  trade_price: number;
+}
+
 interface HedgeFundRequest {
   tickers: string[];
   graph_nodes: GraphNode[];
@@ -37,6 +43,7 @@ interface HedgeFundRequest {
   model_provider?: ModelProvider; // System default when agents don't specify their own model
   initial_cash?: number;
   margin_requirement?: number;
+  portfolio_positions?: PortfolioPosition[];
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';

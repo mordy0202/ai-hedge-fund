@@ -194,12 +194,14 @@ export function PortfolioStartNode({
       }
     }
     
-    // Convert positions to the expected format for future backend use
-    const portfolioPositions = positions.map(pos => ({
-      ticker: pos.ticker.trim(),
-      quantity: parseFloat(pos.quantity) || 0,
-      trade_price: parseFloat(pos.tradePrice) || 0
-    }));
+    // Convert positions to the expected format for backend use
+    const portfolioPositions = positions
+      .filter(pos => pos.ticker.trim() !== '' && pos.quantity.trim() !== '' && pos.tradePrice.trim() !== '')
+      .map(pos => ({
+        ticker: pos.ticker.trim(),
+        quantity: parseFloat(pos.quantity) || 0,
+        trade_price: parseFloat(pos.tradePrice) || 0
+      }));
     
     // For now, extract tickers for current API compatibility
     const tickerList = positions.map(pos => pos.ticker.trim()).filter(ticker => ticker !== '');
@@ -222,8 +224,8 @@ export function PortfolioStartNode({
       start_date: threeMonthsAgo.toISOString().split('T')[0],
       end_date: today.toISOString().split('T')[0],
       initial_cash: parseFloat(initialCash) || 100000,
-      // TODO: Add portfolio_positions when backend supports it
-      // portfolio_positions: portfolioPositions,
+      // Pass portfolio positions to backend
+      portfolio_positions: portfolioPositions,
     });
   };
 
