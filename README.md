@@ -24,13 +24,6 @@ This system employs several agents working together:
 
 <img width="1042" alt="Screenshot 2025-03-22 at 6 19 07 PM" src="https://github.com/user-attachments/assets/cbae3dcf-b571-490d-b0ad-3f0f035ac0d4" />
 
-As of June 2025, there are **two ways** to run the AI Hedge Fund:
-
-1. **⌨️ Command Line Interface** - Terminal-based approach
-2. **🖥️ Web Application (NEW!)** - User-friendly web interface
-
-**Note**: the system simulates trading decisions, it does not actually trade.
-
 [![Twitter Follow](https://img.shields.io/twitter/follow/virattt?style=social)](https://twitter.com/virattt)
 
 ## Disclaimer

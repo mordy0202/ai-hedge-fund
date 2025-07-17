@@ -123,7 +123,6 @@ export function PortfolioManagerNode({
                   </span>
                 </div>
               </div>
-                            
               <div className='flex flex-col gap-2'>
                 {outputNodeData && (
                   <Button
