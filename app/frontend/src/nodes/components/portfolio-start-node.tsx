@@ -56,6 +56,8 @@ export function PortfolioStartNode({
   ]);
   const [initialCash, setInitialCash] = useNodeState(id, 'initialCash', '100000');
   const [runMode, setRunMode] = useNodeState(id, 'runMode', 'single');
+  const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useNodeState(id, 'endDate', today.toISOString().split('T')[0]);
   const [open, setOpen] = useState(false);
   
   const { currentFlowId } = useFlowContext();
@@ -123,6 +125,14 @@ export function PortfolioStartNode({
     // Remove non-numeric characters except decimal point
     const numericValue = e.target.value.replace(/[^0-9.]/g, '');
     setInitialCash(numericValue);
+  };
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
   };
 
   // Format the display value with commas
@@ -215,7 +225,7 @@ export function PortfolioStartNode({
     
     // Check if we're in backtest mode
     if (runMode === 'backtest') {
-      // Use the flow connection hook to run the backtest with same structure as regular run
+      // Use the flow connection hook to run the backtest with selected dates
       runBacktest({
         tickers: tickerList,
         // Send the actual graph structure instead of just selected analysts
@@ -227,8 +237,8 @@ export function PortfolioStartNode({
         })),
         graph_edges: validEdges,
         agent_models: agentModels,
-        start_date: threeMonthsAgo.toISOString().split('T')[0],
-        end_date: today.toISOString().split('T')[0],
+        start_date: startDate,
+        end_date: endDate,
         initial_capital: parseFloat(initialCash) || 100000,
         margin_requirement: 0.0, // Default margin requirement
         model_name: undefined,
@@ -419,6 +429,30 @@ export function PortfolioStartNode({
                   </Button>
                 </div>
               </div>
+              {runMode === 'backtest' && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="text-subtitle text-primary flex items-center gap-1">
+                      Start Date
+                    </div>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={handleStartDateChange}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="text-subtitle text-primary flex items-center gap-1">
+                      End Date
+                    </div>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={handleEndDateChange}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
