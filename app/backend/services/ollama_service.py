@@ -443,7 +443,9 @@ class OllamaService:
             
             yield f"data: {json.dumps({'status': 'starting', 'percentage': 0, 'message': f'Starting download of {model_name}...'})}\n\n"
             
-            async for progress in self._async_client.pull(model_name, stream=True):
+            # Await the pull method to get the async iterator
+            pull_stream = await self._async_client.pull(model_name, stream=True)
+            async for progress in pull_stream:
                 progress_data = self._process_download_progress(progress, model_name)
                 if progress_data:
                     yield f"data: {json.dumps(progress_data)}\n\n"
@@ -478,7 +480,8 @@ class OllamaService:
         }
         
         # Add completed/total info if available
-        if hasattr(progress, 'completed') and hasattr(progress, 'total') and progress.total > 0:
+        if (hasattr(progress, 'completed') and hasattr(progress, 'total') and 
+            progress.total is not None and progress.completed is not None and progress.total > 0):
             percentage = (progress.completed / progress.total) * 100
             progress_data.update({
                 "percentage": percentage,
@@ -496,6 +499,7 @@ class OllamaService:
         # Check if download is complete
         if (progress.status == "success" or 
             (hasattr(progress, 'completed') and hasattr(progress, 'total') and 
+             progress.completed is not None and progress.total is not None and
              progress.completed == progress.total)):
             final_data = {
                 "status": "completed",
