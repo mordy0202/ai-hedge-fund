@@ -101,7 +101,7 @@ class BacktestDayResult(BaseModel):
     short_exposure: float
     gross_exposure: float
     net_exposure: float
-    long_short_ratio: float
+    long_short_ratio: Optional[float] = None
 
 
 class BacktestPerformanceMetrics(BaseModel):
