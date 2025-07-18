@@ -200,8 +200,32 @@ export function OllamaSettings() {
                         delete newProgress[modelName];
                         return newProgress;
                       });
-                      // Refresh status to show the new model
-                      setTimeout(() => fetchOllamaStatus(), 1000);
+                      // Refresh status to show the new model with retry logic
+                      const refreshWithRetry = async (attempts = 0) => {
+                        try {
+                          const response = await fetch('http://localhost:8000/ollama/status');
+                          if (response.ok) {
+                            const status = await response.json();
+                            setOllamaStatus(status);
+                            setError(null);
+                            
+                            // Check if the model is now in the available models list
+                            if (attempts < 5 && status && !status.available_models.includes(modelName)) {
+                              // Wait a bit longer and try again
+                              setTimeout(() => refreshWithRetry(attempts + 1), 2000);
+                            }
+                          } else if (attempts < 5) {
+                            // If fetch failed, retry
+                            setTimeout(() => refreshWithRetry(attempts + 1), 2000);
+                          }
+                        } catch (error) {
+                          console.error('Failed to refresh status:', error);
+                          if (attempts < 5) {
+                            setTimeout(() => refreshWithRetry(attempts + 1), 2000);
+                          }
+                        }
+                      };
+                      setTimeout(() => refreshWithRetry(), 2000);
                       return; // Exit the function
                     } else if (data.status === 'error' || data.status === 'cancelled') {
                       setActiveDownloads(prev => {
@@ -412,8 +436,32 @@ export function OllamaSettings() {
                 delete newProgress[modelName];
                 return newProgress;
               });
-              // Refresh status to show the new model
-              setTimeout(() => fetchOllamaStatus(), 1000);
+              // Refresh status to show the new model with retry logic
+              const refreshWithRetry = async (attempts = 0) => {
+                try {
+                  const response = await fetch('http://localhost:8000/ollama/status');
+                  if (response.ok) {
+                    const status = await response.json();
+                    setOllamaStatus(status);
+                    setError(null);
+                    
+                    // Check if the model is now in the available models list
+                    if (attempts < 5 && status && !status.available_models.includes(modelName)) {
+                      // Wait a bit longer and try again
+                      setTimeout(() => refreshWithRetry(attempts + 1), 2000);
+                    }
+                  } else if (attempts < 5) {
+                    // If fetch failed, retry
+                    setTimeout(() => refreshWithRetry(attempts + 1), 2000);
+                  }
+                } catch (error) {
+                  console.error('Failed to refresh status:', error);
+                  if (attempts < 5) {
+                    setTimeout(() => refreshWithRetry(attempts + 1), 2000);
+                  }
+                }
+              };
+              setTimeout(() => refreshWithRetry(), 2000);
               return false; // Stop polling
             } else if (progress.status === 'error' || progress.status === 'cancelled') {
               setActiveDownloads(prev => {
