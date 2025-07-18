@@ -69,7 +69,7 @@ export interface BacktestDayResult {
   short_exposure: number;
   gross_exposure: number;
   net_exposure: number;
-  long_short_ratio: number;
+  long_short_ratio: number | null;
 }
 
 export interface BacktestPerformanceMetrics {

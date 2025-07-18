@@ -1,4 +1,4 @@
-import { MessageItem, useNodeContext } from '@/contexts/node-context';
+import { useNodeContext } from '@/contexts/node-context';
 import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import {
   BacktestDayResult,
@@ -48,6 +48,9 @@ export const backtestApi = {
       const decoder = new TextDecoder();
       let buffer = '';
       
+      // Local array to accumulate backtest results
+      let backtestResults: any[] = [];
+      
       // Function to process the stream
       const processStream = async () => {
         try {
@@ -85,35 +88,35 @@ export const backtestApi = {
                     case 'start':
                       // Reset all nodes at the start of a new backtest
                       nodeContext.resetAllNodes(flowId);
+                      // Clear local backtest results
+                      backtestResults = [];
                       // Create a backtest agent entry
                       nodeContext.updateAgentNode(flowId, 'backtest', {
                         status: 'IN_PROGRESS',
                         message: 'Starting backtest...',
+                        backtestResults: [],
                       });
                       break;
                     
                     case 'progress':
                       // Update the backtest agent with progress
                       if (eventData.agent === 'backtest') {
-                        // Get current agent data to append to messages
-                        const currentData = nodeContext.getAgentNodeDataForFlow(flowId)['backtest'] || {};
-                        const currentMessages = currentData.messages || [];
+                        // If this progress update contains backtest result data, add it to local array
+                        if (eventData.analysis) {
+                          try {
+                            const backtestResultData = JSON.parse(eventData.analysis);
+                            // Add to local array and keep only the last 50 results to avoid memory issues
+                            backtestResults = [...backtestResults, backtestResultData].slice(-50);
+                          } catch (error) {
+                            console.error('Error parsing backtest result data:', error);
+                          }
+                        }
                         
-                        // Create new message entry
-                        const newMessage: MessageItem = {
-                          timestamp: new Date().toISOString(),
-                          message: eventData.status,
-                          ticker: null,
-                          analysis: eventData.analysis ? { details: String(eventData.analysis) } : {},
-                        };
-                        
-                        // Keep only the last 20 messages to avoid memory issues
-                        const updatedMessages = [...currentMessages, newMessage].slice(-20);
-                        
+                        // Update the node with the local backtest results
                         nodeContext.updateAgentNode(flowId, 'backtest', {
                           status: 'IN_PROGRESS',
                           message: eventData.status,
-                          messages: updatedMessages,
+                          backtestResults: backtestResults,
                         });
                       }
                       break;

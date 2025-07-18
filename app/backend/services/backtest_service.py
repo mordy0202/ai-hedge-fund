@@ -505,7 +505,7 @@ class BacktestService:
             # Send intermediate result if callback provided
             if progress_callback:
                 progress_callback({
-                    "type": "day_result",
+                    "type": "backtest_result",
                     "data": date_result,
                 })
 

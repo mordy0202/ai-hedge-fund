@@ -10,19 +10,9 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
   
   if (!backtestAgent) return null;
   
-  // Parse the most recent backtest results from messages
-  const recentResults = backtestAgent.messages?.slice(-10) || [];
-  const latestDayResult = recentResults
-    .filter((msg: any) => msg.analysis && msg.analysis.details)
-    .map((msg: any) => {
-      try {
-        return JSON.parse(msg.analysis.details);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean)
-    .pop(); // Get the most recent valid day result
+  // Get the latest backtest result from the backtest results array
+  const backtestResults = backtestAgent.backtestResults || [];
+  const latestBacktestResult = backtestResults.length > 0 ? backtestResults[backtestResults.length - 1] : null;
   
   return (
     <Card className="bg-transparent mb-4">
@@ -38,34 +28,34 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
             <span className="text-yellow-500 flex-1">{backtestAgent.message || backtestAgent.status}</span>
           </div>
           
-          {/* Latest Day Results */}
-          {latestDayResult && (
+          {/* Latest Backtest Results */}
+          {latestBacktestResult && (
             <div className="space-y-4">
               <div className="border-t pt-4">
-                <h4 className="font-medium mb-3">Latest Trading Day: {latestDayResult.date}</h4>
+                <h4 className="font-medium mb-3">Latest Trading Period: {latestBacktestResult.date}</h4>
                 
                 {/* Portfolio Summary */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">Portfolio Value</div>
-                    <div className="font-medium text-lg">${latestDayResult.portfolio_value?.toLocaleString()}</div>
+                    <div className="font-medium text-lg">${latestBacktestResult.portfolio_value?.toLocaleString()}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">Cash</div>
-                    <div className="font-medium">${latestDayResult.cash?.toLocaleString()}</div>
+                    <div className="font-medium">${latestBacktestResult.cash?.toLocaleString()}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">Long Exposure</div>
-                    <div className="font-medium text-green-500">${latestDayResult.long_exposure?.toLocaleString()}</div>
+                    <div className="font-medium text-green-500">${latestBacktestResult.long_exposure?.toLocaleString()}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-muted-foreground">Short Exposure</div>
-                    <div className="font-medium text-red-500">${latestDayResult.short_exposure?.toLocaleString()}</div>
+                    <div className="font-medium text-red-500">${latestBacktestResult.short_exposure?.toLocaleString()}</div>
                   </div>
                 </div>
                 
                 {/* Trading Decisions */}
-                {latestDayResult.decisions && Object.keys(latestDayResult.decisions).length > 0 && (
+                {latestBacktestResult.decisions && Object.keys(latestBacktestResult.decisions).length > 0 && (
                   <div className="mb-4">
                     <h5 className="font-medium mb-2">Trading Decisions</h5>
                     <Table>
@@ -79,7 +69,7 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {Object.entries(latestDayResult.decisions).map(([ticker, decision]: [string, any]) => (
+                        {Object.entries(latestBacktestResult.decisions).map(([ticker, decision]: [string, any]) => (
                           <TableRow key={ticker}>
                             <TableCell className="font-medium">{ticker}</TableCell>
                             <TableCell>
@@ -88,8 +78,8 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
                               </span>
                             </TableCell>
                             <TableCell>{decision.quantity || 0}</TableCell>
-                            <TableCell>${latestDayResult.current_prices?.[ticker]?.toFixed(2) || 'N/A'}</TableCell>
-                            <TableCell>{latestDayResult.executed_trades?.[ticker] || 0}</TableCell>
+                            <TableCell>${latestBacktestResult.current_prices?.[ticker]?.toFixed(2) || 'N/A'}</TableCell>
+                            <TableCell>{latestBacktestResult.executed_trades?.[ticker] || 0}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -98,11 +88,11 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
                 )}
                 
                 {/* Analyst Signals Summary */}
-                {latestDayResult.analyst_signals && Object.keys(latestDayResult.analyst_signals).length > 0 && (
+                {latestBacktestResult.analyst_signals && Object.keys(latestBacktestResult.analyst_signals).length > 0 && (
                   <div className="mb-4">
                     <h5 className="font-medium mb-2">Analyst Signals</h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {Object.entries(latestDayResult.analyst_signals).map(([agent, signals]: [string, any]) => (
+                      {Object.entries(latestBacktestResult.analyst_signals).map(([agent, signals]: [string, any]) => (
                         <div key={agent} className="border rounded p-3">
                           <div className="font-medium mb-2">{getDisplayName(agent)}</div>
                           <div className="space-y-1 text-sm">
@@ -125,15 +115,15 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
           )}
           
           {/* Recent Progress Messages */}
-          {recentResults.length > 0 && (
+          {backtestResults.length > 0 && (
             <div className="border-t pt-4">
               <h4 className="font-medium mb-2">Recent Progress:</h4>
               <div className="space-y-1 max-h-32 overflow-y-auto">
-                {recentResults.slice(-5).map((msg: any, idx: number) => (
+                {backtestResults.slice(-5).map((backtestResult: any, idx: number) => (
                   <div key={idx} className="text-sm text-muted-foreground flex justify-between">
-                    <span>{msg.message}</span>
+                    <span>Completed {backtestResult.date} - Portfolio: ${backtestResult.portfolio_value?.toLocaleString()}</span>
                     <span className="text-xs">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
+                      {backtestResult.date}
                     </span>
                   </div>
                 ))}
@@ -149,48 +139,30 @@ function BacktestProgress({ agentData }: { agentData: Record<string, any> }) {
 // Component for displaying backtest trading table (similar to CLI)
 function BacktestTradingTable({ agentData }: { agentData: Record<string, any> }) {
   const backtestAgent = agentData['backtest'];
+
+  // console.log("backtestAgent", backtestAgent);
   
-  if (!backtestAgent || !backtestAgent.messages) {
-    console.log('BacktestTradingTable: No backtest agent or messages');
+  if (!backtestAgent || !backtestAgent.backtestResults) {
     return null;
   }
+    
+  // Get the backtest results directly from the agent data
+  const backtestResults = backtestAgent.backtestResults || [];
   
-  console.log('BacktestTradingTable: Processing messages:', backtestAgent.messages.length);
-  
-  // Parse all day results from messages
-  const dayResults = backtestAgent.messages
-    .filter((msg: any) => msg.analysis && msg.analysis.details)
-    .map((msg: any) => {
-      try {
-        const parsed = JSON.parse(msg.analysis.details);
-        console.log('BacktestTradingTable: Parsed day result:', parsed);
-        return parsed;
-      } catch (error) {
-        console.error('BacktestTradingTable: Error parsing analysis:', error);
-        return null;
-      }
-    })
-    .filter(Boolean);
-  
-  console.log('BacktestTradingTable: Day results count:', dayResults.length);
-  
-  if (dayResults.length === 0) {
-    console.log('BacktestTradingTable: No day results found');
+  if (backtestResults.length === 0) {
     return null;
   }
   
   // Build table rows similar to CLI format
   const tableRows: any[] = [];
   
-  dayResults.forEach((dayResult: any) => {
-    console.log('BacktestTradingTable: Processing day result:', dayResult.date, 'has ticker_details:', !!dayResult.ticker_details);
-    
-    // Add ticker rows for this day
-    if (dayResult.ticker_details) {
-      dayResult.ticker_details.forEach((ticker: any) => {
+  backtestResults.forEach((backtestResult: any) => {    
+    // Add ticker rows for this period
+    if (backtestResult.ticker_details) {
+      backtestResult.ticker_details.forEach((ticker: any) => {
         tableRows.push({
           type: 'ticker',
-          date: dayResult.date,
+          date: backtestResult.date,
           ticker: ticker.ticker,
           action: ticker.action,
           quantity: ticker.quantity,
@@ -206,24 +178,21 @@ function BacktestTradingTable({ agentData }: { agentData: Record<string, any> })
       });
     }
     
-    // Add portfolio summary row for this day
+    // Add portfolio summary row for this period
     tableRows.push({
       type: 'summary',
-      date: dayResult.date,
-      portfolio_value: dayResult.portfolio_value,
-      cash: dayResult.cash,
-      portfolio_return: dayResult.portfolio_return,
-      total_position_value: dayResult.portfolio_value - dayResult.cash,
-      performance_metrics: dayResult.performance_metrics,
+      date: backtestResult.date,
+      portfolio_value: backtestResult.portfolio_value,
+      cash: backtestResult.cash,
+      portfolio_return: backtestResult.portfolio_return,
+      total_position_value: backtestResult.portfolio_value - backtestResult.cash,
+      performance_metrics: backtestResult.performance_metrics,
     });
   });
-  
-  console.log('BacktestTradingTable: Total table rows:', tableRows.length);
-  
+    
   // Show only the last 50 rows to avoid performance issues
   const recentRows = tableRows.slice(-50);
   
-  console.log('BacktestTradingTable: Recent rows to display:', recentRows.length);
   
   return (
     <Card className="bg-transparent mb-4">
@@ -312,6 +281,8 @@ function BacktestResults({ outputData }: { outputData: any }) {
   if (!outputData) {
     return null;
   }
+
+  console.log("outputData", outputData);
   
   if (!outputData.performance_metrics) {
     return (
@@ -407,7 +378,7 @@ function BacktestResults({ outputData }: { outputData: any }) {
                 <div className="flex justify-between">
                   <span>Long/Short Ratio:</span>
                   <span className="font-medium">
-                    {performance_metrics.long_short_ratio === Infinity ? '∞' : performance_metrics.long_short_ratio.toFixed(2)}
+                    {performance_metrics.long_short_ratio === Infinity || performance_metrics.long_short_ratio === null ? '∞' : performance_metrics.long_short_ratio.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -456,48 +427,39 @@ function BacktestResults({ outputData }: { outputData: any }) {
 function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, any> }) {
   const backtestAgent = agentData['backtest'];
   
-  if (!backtestAgent || !backtestAgent.messages) return null;
+  if (!backtestAgent || !backtestAgent.backtestResults) return null;
   
-  // Parse all day results to calculate performance
-  const dayResults = backtestAgent.messages
-    .filter((msg: any) => msg.analysis && msg.analysis.details)
-    .map((msg: any) => {
-      try {
-        return JSON.parse(msg.analysis.details);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
+  // Get the backtest results directly from the agent data
+  const backtestResults = backtestAgent.backtestResults || [];
   
-  if (dayResults.length === 0) return null;
+  if (backtestResults.length === 0) return null;
   
-  const firstDay = dayResults[0];
-  const latestDay = dayResults[dayResults.length - 1];
+  const firstPeriod = backtestResults[0];
+  const latestPeriod = backtestResults[backtestResults.length - 1];
   
   // Calculate performance metrics
-  const initialValue = firstDay.portfolio_value;
-  const currentValue = latestDay.portfolio_value;
+  const initialValue = firstPeriod.portfolio_value;
+  const currentValue = latestPeriod.portfolio_value;
   const totalReturn = ((currentValue - initialValue) / initialValue) * 100;
   
-  // Calculate win rate (days with positive returns)
-  const dailyReturns = dayResults.slice(1).map((day: any, idx: number) => {
-    const prevDay = dayResults[idx];
-    return ((day.portfolio_value - prevDay.portfolio_value) / prevDay.portfolio_value) * 100;
+  // Calculate win rate (periods with positive returns)
+  const periodReturns = backtestResults.slice(1).map((period: any, idx: number) => {
+    const prevPeriod = backtestResults[idx];
+    return ((period.portfolio_value - prevPeriod.portfolio_value) / prevPeriod.portfolio_value) * 100;
   });
   
-  const winningDays = dailyReturns.filter((ret: number) => ret > 0).length;
-  const winRate = dailyReturns.length > 0 ? (winningDays / dailyReturns.length) * 100 : 0;
+  const winningPeriods = periodReturns.filter((ret: number) => ret > 0).length;
+  const winRate = periodReturns.length > 0 ? (winningPeriods / periodReturns.length) * 100 : 0;
   
   // Calculate max drawdown
   let maxDrawdown = 0;
   let peak = initialValue;
   
-  dayResults.forEach((day: any) => {
-    if (day.portfolio_value > peak) {
-      peak = day.portfolio_value;
+  backtestResults.forEach((period: any) => {
+    if (period.portfolio_value > peak) {
+      peak = period.portfolio_value;
     }
-    const drawdown = ((day.portfolio_value - peak) / peak) * 100;
+    const drawdown = ((period.portfolio_value - peak) / peak) * 100;
     if (drawdown < maxDrawdown) {
       maxDrawdown = drawdown;
     }
@@ -525,8 +487,8 @@ function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, a
             <div className="font-medium text-lg text-red-500">{Math.abs(maxDrawdown).toFixed(2)}%</div>
           </div>
           <div className="text-center">
-            <div className="text-sm text-muted-foreground">Days Traded</div>
-            <div className="font-medium text-lg">{dayResults.length}</div>
+            <div className="text-sm text-muted-foreground">Periods Traded</div>
+            <div className="font-medium text-lg">{backtestResults.length}</div>
           </div>
         </div>
         
@@ -549,7 +511,7 @@ function BacktestPerformanceMetrics({ agentData }: { agentData: Record<string, a
           <div className="text-center">
             <div className="text-sm text-muted-foreground">Long/Short Ratio</div>
             <div className="font-medium">
-              {latestDay.long_short_ratio === Infinity ? '∞' : latestDay.long_short_ratio?.toFixed(2)}
+              {latestPeriod.long_short_ratio === Infinity || latestPeriod.long_short_ratio === null ? '∞' : latestPeriod.long_short_ratio?.toFixed(2)}
             </div>
           </div>
         </div>

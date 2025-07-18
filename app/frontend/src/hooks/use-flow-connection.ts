@@ -198,8 +198,8 @@ export function useFlowConnection(flowId: string | null) {
       console.log(`[stopFlow] No abort controller found for flow ${flowId}`);
     }
 
-    // Reset node states when stopping
-    nodeContext.resetAllNodes(flowId);
+    // Reset only node statuses when stopping, preserving all data (backtest results, messages, etc.)
+    nodeContext.resetNodeStatuses(flowId);
 
     // Update connection state
     flowConnectionManager.setConnection(flowId, {

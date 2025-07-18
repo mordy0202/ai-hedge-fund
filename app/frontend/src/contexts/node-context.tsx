@@ -20,6 +20,7 @@ export interface AgentNodeData {
   messages: MessageItem[];
   timestamp?: string;
   analysis: string | null;
+  backtestResults?: any[];
 }
 
 // Data structure for the output node data (from complete event)
@@ -70,6 +71,7 @@ interface NodeContextType {
   getAgentModel: (flowId: string | null, nodeId: string) => LanguageModel | null;
   getAllAgentModels: (flowId: string | null) => Record<string, LanguageModel | null>;
   resetAllNodes: (flowId: string | null) => void;
+  resetNodeStatuses: (flowId: string | null) => void;
   exportNodeContextData: (flowId: string | null) => {
     agentNodeData: Record<string, AgentNodeData>;
     outputNodeData: OutputNodeData | null;
@@ -115,6 +117,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     // Handle data object - full update
     setAgentNodeData(prev => {
       const existingNode = prev[compositeKey] || { ...DEFAULT_AGENT_NODE_STATE };
+      
       const newMessages = [...existingNode.messages];
       
       // Add message to history if it's new - use more robust checking
@@ -142,13 +145,6 @@ export function NodeProvider({ children }: { children: ReactNode }) {
           }
 
           newMessages.push(messageItem);
-          
-          // Debug logging for background processing
-          if (flowId) {
-            console.debug(`[NodeContext] Added message for ${flowId}:${nodeId} - ${ticker || 'no ticker'}: ${data.message} (total: ${newMessages.length})`);
-          }
-        } else {
-          console.debug(`[NodeContext] Duplicate message detected for ${flowId}:${nodeId} - ${data.ticker || 'no ticker'}: ${data.message}`);
         }
       }
       
@@ -158,11 +154,6 @@ export function NodeProvider({ children }: { children: ReactNode }) {
         messages: newMessages,
         lastUpdated: Date.now()
       };
-      
-      // Debug logging for state updates
-      if (flowId && data.status) {
-        console.debug(`[NodeContext] Updated ${flowId}:${nodeId} status: ${data.status} (${newMessages.length} messages)`);
-      }
       
       return {
         ...prev,
@@ -273,6 +264,46 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     // Note: We don't reset agentModels here as users would want to keep their model selections
   }, []);
 
+  const resetNodeStatuses = useCallback((flowId: string | null) => {
+    // Reset only node statuses to IDLE, preserving all data (messages, backtestResults, etc.)
+    if (!flowId) {
+      // If no flow ID, reset all node statuses (backward compatibility)
+      setAgentNodeData(prev => {
+        const newData: Record<string, AgentNodeData> = {};
+        Object.entries(prev).forEach(([key, value]) => {
+          newData[key] = {
+            ...value,
+            status: 'IDLE',
+            lastUpdated: Date.now(),
+          };
+        });
+        return newData;
+      });
+    } else {
+      // Reset only statuses for specified flow
+      const flowPrefix = `${flowId}:`;
+      setAgentNodeData(prev => {
+        const newData: Record<string, AgentNodeData> = {};
+        Object.entries(prev).forEach(([key, value]) => {
+          if (key.startsWith(flowPrefix)) {
+            // Reset status for this flow's nodes
+            newData[key] = {
+              ...value,
+              status: 'IDLE',
+              lastUpdated: Date.now(),
+            };
+          } else {
+            // Keep other flows' data unchanged
+            newData[key] = value;
+          }
+        });
+        return newData;
+      });
+    }
+    
+    // Note: We don't touch output data or agent models - only reset processing statuses
+  }, []);
+
   // Export node context data for persistence
   const exportNodeContextData = useCallback((flowId: string | null) => {
     // Export agent data for specified flow
@@ -381,6 +412,7 @@ export function NodeProvider({ children }: { children: ReactNode }) {
     getAgentModel,
     getAllAgentModels,
     resetAllNodes,
+    resetNodeStatuses,
     exportNodeContextData,
     importNodeContextData,
     // New flow-aware functions

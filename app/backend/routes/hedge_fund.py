@@ -222,9 +222,9 @@ async def backtest(request_data: BacktestRequest, request: Request):
                         analysis=None
                     )
                     progress_queue.put_nowait(event)
-                elif update["type"] == "day_result":
+                elif update["type"] == "backtest_result":
                     # Convert day result to a streaming event
-                    day_result = BacktestDayResult(**update["data"])
+                    backtest_result = BacktestDayResult(**update["data"])
                     
                     # Send the full day result data as JSON in the analysis field
                     import json
@@ -233,7 +233,7 @@ async def backtest(request_data: BacktestRequest, request: Request):
                     event = ProgressUpdateEvent(
                         agent="backtest",
                         ticker=None,
-                        status=f"Completed {day_result.date} - Portfolio: ${day_result.portfolio_value:,.2f}",
+                        status=f"Completed {backtest_result.date} - Portfolio: ${backtest_result.portfolio_value:,.2f}",
                         timestamp=None,
                         analysis=analysis_data
                     )
