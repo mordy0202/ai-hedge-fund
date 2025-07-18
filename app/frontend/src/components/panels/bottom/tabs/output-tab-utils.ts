@@ -51,7 +51,7 @@ export function getSignalColor(signal: string): string {
     case 'BEARISH':
       return 'text-red-500';
     case 'NEUTRAL':
-      return 'text-yellow-500';
+      return 'text-primary';
     default:
       return 'text-muted-foreground';
   }
@@ -67,7 +67,7 @@ export function getActionColor(action: string): string {
     case 'SHORT':
       return 'text-red-500';
     case 'HOLD':
-      return 'text-yellow-500';
+      return 'text-primary';
     default:
       return 'text-muted-foreground';
   }

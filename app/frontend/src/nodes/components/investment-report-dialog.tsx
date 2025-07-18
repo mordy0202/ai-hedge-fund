@@ -41,13 +41,22 @@ interface InvestmentReportDialogProps {
 
 type ActionType = 'long' | 'short' | 'hold';
 
-export function InvestmentReportDialog({ 
-  isOpen, 
-  onOpenChange, 
+export function InvestmentReportDialog({
+  isOpen,
+  onOpenChange,
   outputNodeData,
-  connectedAgentIds
+  connectedAgentIds,
 }: InvestmentReportDialogProps) {
-  if (!outputNodeData) return null;
+  // Check if this is a backtest result and return early if it is
+  // Backtest results should be displayed in the backtest output tab, not in the investment report dialog
+  if (outputNodeData?.decisions?.backtest?.type === 'backtest_complete') {
+    return null;
+  }
+
+  // Return early if no output data
+  if (!outputNodeData || !outputNodeData.decisions) {
+    return null;
+  }
 
   const getActionIcon = (action: ActionType) => {
     switch (action) {
@@ -63,9 +72,9 @@ export function InvestmentReportDialog({
   };
 
   const getSignalBadge = (signal: string) => {
-    const variant = signal === 'bullish' ? 'success' : 
+    const variant = signal === 'bullish' ? 'success' :
                    signal === 'bearish' ? 'destructive' : 'outline';
-    
+
     return (
       <Badge variant={variant as any}>
         {signal}
@@ -88,11 +97,11 @@ export function InvestmentReportDialog({
 
   // Extract unique tickers from the data
   const tickers = Object.keys(outputNodeData.decisions || {});
-  
+
   // Use the unique node IDs directly since they're now stored as keys in analyst_signals
   const connectedUniqueAgentIds = Array.from(connectedAgentIds);
   const agents = Object.keys(outputNodeData.analyst_signals || {})
-    .filter(agent => 
+    .filter(agent =>
       extractBaseAgentKey(agent) !== 'risk_management_agent' && connectedUniqueAgentIds.includes(agent)
     );
 
@@ -104,7 +113,7 @@ export function InvestmentReportDialog({
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Investment Report</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-8 my-4">
           {/* Summary Section */}
           <section>
@@ -174,7 +183,7 @@ export function InvestmentReportDialog({
                         {agents.map(agent => {
                           const signal = outputNodeData.analyst_signals[agent]?.[ticker];
                           if (!signal) return null;
-                          
+
                           return (
                             <Card key={agent} className="overflow-hidden">
                               <CardHeader className="bg-muted/50 pb-3">
