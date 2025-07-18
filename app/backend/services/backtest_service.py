@@ -281,9 +281,9 @@ class BacktestService:
             if downside_std > 1e-12:
                 performance_metrics["sortino_ratio"] = np.sqrt(252) * (mean_excess_return / downside_std)
             else:
-                performance_metrics["sortino_ratio"] = float("inf") if mean_excess_return > 0 else 0
+                performance_metrics["sortino_ratio"] = None if mean_excess_return > 0 else 0
         else:
-            performance_metrics["sortino_ratio"] = float("inf") if mean_excess_return > 0 else 0
+            performance_metrics["sortino_ratio"] = None if mean_excess_return > 0 else 0
 
         # Maximum drawdown
         rolling_max = values_df["Portfolio Value"].cummax()
@@ -423,7 +423,7 @@ class BacktestService:
             short_exposure = sum(self.portfolio["positions"][t]["short"] * current_prices[t] for t in self.tickers)
             gross_exposure = long_exposure + short_exposure
             net_exposure = long_exposure - short_exposure
-            long_short_ratio = long_exposure / short_exposure if short_exposure > 1e-9 else float("inf")
+            long_short_ratio = long_exposure / short_exposure if short_exposure > 1e-9 else None
 
             # Track portfolio value
             self.portfolio_values.append({
