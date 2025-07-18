@@ -211,7 +211,12 @@ async def backtest(request_data: BacktestRequest, request: Request):
             backtest_task = None
             disconnect_task = None
 
-            # Progress callback to handle backtest updates
+            # Global progress handler to capture individual agent updates during backtest
+            def progress_handler(agent_name, ticker, status, analysis, timestamp):
+                event = ProgressUpdateEvent(agent=agent_name, ticker=ticker, status=status, timestamp=timestamp, analysis=analysis)
+                progress_queue.put_nowait(event)
+
+            # Progress callback to handle backtest-specific updates
             def progress_callback(update):
                 if update["type"] == "progress":
                     event = ProgressUpdateEvent(
@@ -239,6 +244,9 @@ async def backtest(request_data: BacktestRequest, request: Request):
                     )
                     progress_queue.put_nowait(event)
 
+            # Register our handler with the progress tracker to capture agent updates
+            progress.register_handler(progress_handler)
+            
             try:
                 # Start the backtest in a background task
                 backtest_task = asyncio.create_task(
@@ -298,6 +306,7 @@ async def backtest(request_data: BacktestRequest, request: Request):
                 return
             finally:
                 # Clean up
+                progress.unregister_handler(progress_handler)
                 if backtest_task and not backtest_task.done():
                     backtest_task.cancel()
                     try:

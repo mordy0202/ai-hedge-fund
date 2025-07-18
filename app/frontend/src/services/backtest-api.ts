@@ -1,4 +1,5 @@
-import { useNodeContext } from '@/contexts/node-context';
+import { NodeStatus, useNodeContext } from '@/contexts/node-context';
+import { extractBaseAgentKey } from '@/data/node-mappings';
 import { flowConnectionManager } from '@/hooks/use-flow-connection';
 import {
   BacktestDayResult,
@@ -99,8 +100,34 @@ export const backtestApi = {
                       break;
                     
                     case 'progress':
-                      // Update the backtest agent with progress
-                      if (eventData.agent === 'backtest') {
+                      // Handle individual agent updates (from actual agents during backtest)
+                      if (eventData.agent && eventData.agent !== 'backtest') {
+                        // Map the progress to a node status
+                        let nodeStatus: NodeStatus = 'IN_PROGRESS';
+                        if (eventData.status === 'Done') {
+                          nodeStatus = 'COMPLETE';
+                        }
+                        // Map the backend agent name to the unique node ID
+                        const baseAgentKey = eventData.agent.replace('_agent', '');
+                        
+                        // Find the unique node ID that corresponds to this base agent key
+                        // We need to get the agent IDs from the request parameters
+                        const agentIds = params.graph_nodes.map(node => node.id);
+                        const uniqueNodeId = agentIds.find(id => 
+                          extractBaseAgentKey(id) === baseAgentKey
+                        ) || baseAgentKey;
+                                                
+                        // Use the enhanced API to update both status and additional data
+                        nodeContext.updateAgentNode(flowId, uniqueNodeId, {
+                          status: nodeStatus,
+                          ticker: eventData.ticker,
+                          message: eventData.status,
+                          analysis: eventData.analysis,
+                          timestamp: eventData.timestamp
+                        });
+                      }
+                      // Handle backtest-specific progress updates
+                      else if (eventData.agent === 'backtest') {
                         // If this progress update contains backtest result data, add it to local array
                         if (eventData.analysis) {
                           try {
