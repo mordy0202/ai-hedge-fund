@@ -15,16 +15,16 @@ const multiNodeDefinition: Record<string, MultiNodeDefinition> = {
   "Value Investors": {
     name: "Value Investors",
     nodes: [
-      { componentName: "Stock Tickers", offsetX: 0, offsetY: 0 },
+      { componentName: "Stock Input", offsetX: 0, offsetY: 0 },
       { componentName: "Ben Graham", offsetX: 400, offsetY: -300 },
       { componentName: "Charlie Munger", offsetX: 400, offsetY: 0 },
       { componentName: "Warren Buffett", offsetX: 400, offsetY: 300 },
       { componentName: "Portfolio Manager", offsetX: 800, offsetY: 0 },
     ],
     edges: [
-      { source: "Stock Tickers", target: "Ben Graham" },
-      { source: "Stock Tickers", target: "Charlie Munger" },
-      { source: "Stock Tickers", target: "Warren Buffett" },
+      { source: "Stock Input", target: "Ben Graham" },
+      { source: "Stock Input", target: "Charlie Munger" },
+      { source: "Stock Input", target: "Warren Buffett" },
       { source: "Ben Graham", target: "Portfolio Manager" },
       { source: "Charlie Munger", target: "Portfolio Manager" },
       { source: "Warren Buffett", target: "Portfolio Manager" },
@@ -33,7 +33,7 @@ const multiNodeDefinition: Record<string, MultiNodeDefinition> = {
   "Data Wizards": {
     name: "Data Wizards",
     nodes: [
-      { componentName: "Stock Tickers", offsetX: 0, offsetY: 0 },
+      { componentName: "Stock Input", offsetX: 0, offsetY: 0 },
       { componentName: "Technical Analyst", offsetX: 400, offsetY: -550 },
       { componentName: "Fundamentals Analyst", offsetX: 400, offsetY: -200 },
       { componentName: "Sentiment Analyst", offsetX: 400, offsetY: 150 },
@@ -41,10 +41,10 @@ const multiNodeDefinition: Record<string, MultiNodeDefinition> = {
       { componentName: "Portfolio Manager", offsetX: 800, offsetY: 0 },
     ],
     edges: [
-      { source: "Stock Tickers", target: "Technical Analyst" },
-      { source: "Stock Tickers", target: "Fundamentals Analyst" },
-      { source: "Stock Tickers", target: "Sentiment Analyst" },
-      { source: "Stock Tickers", target: "Valuation Analyst" },
+      { source: "Stock Input", target: "Technical Analyst" },
+      { source: "Stock Input", target: "Fundamentals Analyst" },
+      { source: "Stock Input", target: "Sentiment Analyst" },
+      { source: "Stock Input", target: "Valuation Analyst" },
       { source: "Technical Analyst", target: "Portfolio Manager" },
       { source: "Fundamentals Analyst", target: "Portfolio Manager" },
       { source: "Sentiment Analyst", target: "Portfolio Manager" },
