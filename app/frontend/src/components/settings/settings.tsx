@@ -17,7 +17,7 @@ interface SettingsNavItem {
 }
 
 export function Settings({ className }: SettingsProps) {
-  const [selectedSection, setSelectedSection] = useState('models');
+  const [selectedSection, setSelectedSection] = useState('api');
 
   const navigationItems: SettingsNavItem[] = [
     {
