@@ -156,9 +156,11 @@ export function PortfolioStartNode({
   };
 
   const handlePlay = () => {
-    // Expand bottom panel and set to output tab
-    expandBottomPanel();
-    setBottomPanelTab('output');
+    // Expand bottom panel and set to output tab if backtest
+    if (runMode === 'backtest') {
+      expandBottomPanel();
+      setBottomPanelTab('output');
+    }
     
     // Get the current flow's nodes and edges
     const allNodes = getNodes();
