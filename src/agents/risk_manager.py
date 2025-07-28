@@ -3,7 +3,7 @@ from src.graph.state import AgentState, show_agent_reasoning
 from src.utils.progress import progress
 from src.tools.api import get_prices, prices_to_df
 import json
-
+from src.utils.api_key import get_api_key_from_state
 
 ##### Risk Management Agent #####
 def risk_management_agent(state: AgentState, agent_id: str = "risk_management_agent"):
@@ -11,7 +11,7 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
     portfolio = state["data"]["portfolio"]
     data = state["data"]
     tickers = data["tickers"]
-
+    api_key = get_api_key_from_state(state, "FINANCIAL_DATASETS_API_KEY")
     # Initialize risk analysis for each ticker
     risk_analysis = {}
     current_prices = {}  # Store prices here to avoid redundant API calls
@@ -26,6 +26,7 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
             ticker=ticker,
             start_date=data["start_date"],
             end_date=data["end_date"],
+            api_key=api_key,
         )
 
         if not prices:

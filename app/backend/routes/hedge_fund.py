@@ -189,22 +189,20 @@ async def backtest(request_data: BacktestRequest, request: Request, db: Session 
         )
 
         # Construct agent graph using the React Flow graph structure (same as /run endpoint)
-        graph = create_graph(
-            graph_nodes=request_data.graph_nodes,
-            graph_edges=request_data.graph_edges
-        )
+        graph = create_graph(graph_nodes=request_data.graph_nodes, graph_edges=request_data.graph_edges)
         graph = graph.compile()
 
         # Create backtest service with the compiled graph
         backtest_service = BacktestService(
             graph=graph,
+            portfolio=portfolio,
             tickers=request_data.tickers,
             start_date=request_data.start_date,
             end_date=request_data.end_date,
             initial_capital=request_data.initial_capital,
             model_name=request_data.model_name,
             model_provider=model_provider,
-            initial_margin_requirement=request_data.margin_requirement,
+            request=request_data,  # Pass the full request for agent-specific model access
         )
 
         # Function to detect client disconnection
