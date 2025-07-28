@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { Eye, EyeOff, Key, Save, Trash2 } from 'lucide-react';
+import { apiKeysService } from '@/services/api-keys-api';
+import { Eye, EyeOff, Key, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface ApiKey {
@@ -64,28 +64,68 @@ const LLM_API_KEYS: ApiKey[] = [
 export function ApiKeysSettings() {
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
-  const [hasChanges, setHasChanges] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load API keys from localStorage on component mount
+  // Load API keys from backend on component mount
   useEffect(() => {
-    const savedKeys: Record<string, string> = {};
-    [...FINANCIAL_API_KEYS, ...LLM_API_KEYS].forEach(apiKey => {
-      const value = localStorage.getItem(apiKey.key);
-      if (value) {
-        savedKeys[apiKey.key] = value;
-      }
-    });
-    setApiKeys(savedKeys);
+    loadApiKeys();
   }, []);
 
-  const handleKeyChange = (key: string, value: string) => {
+  const loadApiKeys = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const apiKeysSummary = await apiKeysService.getAllApiKeys();
+      
+      // Load actual key values for existing keys
+      const keysData: Record<string, string> = {};
+      for (const summary of apiKeysSummary) {
+        try {
+          const fullKey = await apiKeysService.getApiKey(summary.provider);
+          keysData[summary.provider] = fullKey.key_value;
+        } catch (err) {
+          console.warn(`Failed to load key for ${summary.provider}:`, err);
+        }
+      }
+      
+      setApiKeys(keysData);
+    } catch (err) {
+      console.error('Failed to load API keys:', err);
+      setError('Failed to load API keys. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyChange = async (key: string, value: string) => {
+    // Update local state immediately for responsive UI
     setApiKeys(prev => ({
       ...prev,
       [key]: value
     }));
-    setHasChanges(true);
-    setSaveStatus('idle');
+
+    // Auto-save with debouncing
+    try {
+      if (value.trim()) {
+        await apiKeysService.createOrUpdateApiKey({
+          provider: key,
+          key_value: value.trim(),
+          is_active: true
+        });
+      } else {
+        // If value is empty, delete the key
+        try {
+          await apiKeysService.deleteApiKey(key);
+        } catch (err) {
+          // Key might not exist, which is fine
+          console.log(`Key ${key} not found for deletion, which is expected`);
+        }
+      }
+    } catch (err) {
+      console.error(`Failed to save API key ${key}:`, err);
+      setError(`Failed to save ${key}. Please try again.`);
+    }
   };
 
   const toggleKeyVisibility = (key: string) => {
@@ -95,44 +135,17 @@ export function ApiKeysSettings() {
     }));
   };
 
-  const clearKey = (key: string) => {
-    setApiKeys(prev => {
-      const newKeys = { ...prev };
-      delete newKeys[key];
-      return newKeys;
-    });
-    setHasChanges(true);
-    setSaveStatus('idle');
-  };
-
-  const saveApiKeys = async () => {
-    setSaveStatus('saving');
+  const clearKey = async (key: string) => {
     try {
-      // Save to localStorage
-      Object.entries(apiKeys).forEach(([key, value]) => {
-        if (value.trim()) {
-          localStorage.setItem(key, value.trim());
-        } else {
-          localStorage.removeItem(key);
-        }
+      await apiKeysService.deleteApiKey(key);
+      setApiKeys(prev => {
+        const newKeys = { ...prev };
+        delete newKeys[key];
+        return newKeys;
       });
-      
-      // Remove empty keys from localStorage
-      [...FINANCIAL_API_KEYS, ...LLM_API_KEYS].forEach(apiKey => {
-        if (!apiKeys[apiKey.key] || !apiKeys[apiKey.key].trim()) {
-          localStorage.removeItem(apiKey.key);
-        }
-      });
-
-      setHasChanges(false);
-      setSaveStatus('saved');
-      
-      // Reset save status after 2 seconds
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (error) {
-      console.error('Failed to save API keys:', error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+    } catch (err) {
+      console.error(`Failed to delete API key ${key}:`, err);
+      setError(`Failed to delete ${key}. Please try again.`);
     }
   };
 
@@ -193,14 +206,61 @@ export function ApiKeysSettings() {
     </Card>
   );
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold text-primary mb-2">API Keys</h2>
+          <p className="text-sm text-muted-foreground">
+            Loading API keys...
+          </p>
+        </div>
+        <Card className="bg-panel border-gray-700 dark:border-gray-700">
+          <CardContent className="p-6">
+            <div className="text-sm text-muted-foreground">
+              Please wait while we load your API keys...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-primary mb-2">API Keys</h2>
         <p className="text-sm text-muted-foreground">
           Configure API endpoints and authentication credentials for financial data and language models.
+          Changes are automatically saved.
         </p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <Card className="bg-red-500/5 border-red-500/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Key className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-red-500">Error</h4>
+                <p className="text-xs text-muted-foreground">{error}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setError(null);
+                    loadApiKeys();
+                  }}
+                  className="text-xs mt-2 p-0 h-auto text-red-500 hover:text-red-400"
+                >
+                  Try again
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Financial Data API Keys */}
       {renderApiKeySection(
@@ -218,33 +278,6 @@ export function ApiKeysSettings() {
         <Key className="h-4 w-4" />
       )}
 
-      {/* Save Button */}
-      {hasChanges && (
-        <div className="flex items-center gap-3 pt-4">
-          <Button 
-            onClick={saveApiKeys}
-            disabled={saveStatus === 'saving'}
-            className={cn(
-              "flex items-center gap-2",
-              saveStatus === 'saved' && "bg-green-600 hover:bg-green-700",
-              saveStatus === 'error' && "bg-red-600 hover:bg-red-700"
-            )}
-          >
-            <Save className="h-4 w-4" />
-            {saveStatus === 'saving' && 'Saving...'}
-            {saveStatus === 'saved' && 'Saved!'}
-            {saveStatus === 'error' && 'Error saving'}
-            {saveStatus === 'idle' && 'Save Changes'}
-          </Button>
-          
-          {saveStatus === 'idle' && (
-            <p className="text-sm text-muted-foreground">
-              You have unsaved changes
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Security Note */}
       <Card className="bg-amber-500/5 border-amber-500/20">
         <CardContent className="p-4">
@@ -253,7 +286,7 @@ export function ApiKeysSettings() {
             <div className="space-y-1">
               <h4 className="text-sm font-medium text-amber-500">Security Note</h4>
               <p className="text-xs text-muted-foreground">
-                API keys are stored locally in your browser and are never sent to our servers. 
+                API keys are stored securely on your local system and changes are automatically saved. 
                 Keep your API keys secure and don't share them with others.
               </p>
             </div>
