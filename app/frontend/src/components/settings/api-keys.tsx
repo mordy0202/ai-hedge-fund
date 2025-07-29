@@ -58,6 +58,13 @@ const LLM_API_KEYS: ApiKey[] = [
     description: 'For OpenAI models (gpt-4o, gpt-4o-mini, etc.)',
     url: 'https://platform.openai.com/',
     placeholder: 'your-openai-api-key'
+  },
+  {
+    key: 'OPENROUTER_API_KEY',
+    label: 'OpenRouter API',
+    description: 'For OpenRouter models (gpt-4o, gpt-4o-mini, etc.)',
+    url: 'https://openrouter.ai/',
+    placeholder: 'your-openrouter-api-key'
   }
 ];
 
