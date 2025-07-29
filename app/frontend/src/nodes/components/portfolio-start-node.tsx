@@ -332,7 +332,7 @@ export function PortfolioStartNode({
                       <Input
                         placeholder="Quantity"
                         value={formatNumericValue(position.quantity)}
-                        onChange={(e) => handlePositionChange(index, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))}
+                        onChange={(e) => handlePositionChange(index, 'quantity', e.target.value.replace(/[^0-9.-]/g, ''))}
                         className="w-20"
                       />
                       <div className="relative flex-1">
