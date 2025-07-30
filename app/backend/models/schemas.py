@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from src.llm.models import ModelProvider
 from enum import Enum
@@ -23,6 +23,13 @@ class PortfolioPosition(BaseModel):
     ticker: str
     quantity: float
     trade_price: float
+
+    @field_validator('trade_price')
+    @classmethod
+    def price_must_be_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError('Trade price must be positive!')
+        return v
 
 
 class GraphNode(BaseModel):
