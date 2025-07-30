@@ -133,14 +133,6 @@ export function PortfolioStartNode({
     setEndDate(e.target.value);
   };
 
-  // Format the display value with commas
-  const formatCurrency = (value: string) => {
-    if (!value) return '';
-    const num = parseFloat(value);
-    if (isNaN(num)) return value;
-    return num.toLocaleString('en-US');
-  };
-
   const handleStop = () => {
     stopFlow();
   };
