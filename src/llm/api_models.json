@@ -10,8 +10,8 @@
     "provider": "Anthropic"
   },
   {
-    "display_name": "Claude Opus 4",
-    "model_name": "claude-opus-4-20250514",
+    "display_name": "Claude Opus 4.1",
+    "model_name": "claude-opus-4-1-20250805",
     "provider": "Anthropic"
   },
   {

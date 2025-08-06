@@ -27,7 +27,7 @@ const LLM_API_KEYS: ApiKey[] = [
   {
     key: 'ANTHROPIC_API_KEY',
     label: 'Anthropic API',
-    description: 'For Claude models (claude-3-5-sonnet, claude-3-opus, claude-3-5-haiku)',
+    description: 'For Claude models (claude-4-sonnet, claude-4.1-opus, etc.)',
     url: 'https://anthropic.com/',
     placeholder: 'your-anthropic-api-key'
   },
