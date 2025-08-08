@@ -1,6 +1,6 @@
 # AI Hedge Fund [WIP] 🚧
 
-This project is currently a work in progress. To track progress, please get updates [here](https://x.com/virattt).
+This project is currently a work in progress. To track progress, please get updates [here](https://github.com/mordy0202).
 
 The AI Hedge Fund app is a complete system with both frontend and backend components that enables you to run an AI-powered hedge fund trading system through a web interface on your own computer.
 
@@ -89,7 +89,7 @@ If you prefer to set up each component manually or need more control:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/virattt/ai-hedge-fund.git
+git clone https://github.com/mordy0202/ai-hedge-fund.git
 cd ai-hedge-fund
 ```
 
@@ -230,5 +230,5 @@ If ports 8000 or 5173 are in use:
 - **Or use different ports** by modifying the scripts
 
 ### Getting Help
-- Check the [GitHub Issues](https://github.com/virattt/ai-hedge-fund/issues)
-- Follow updates on [Twitter](https://x.com/virattt) 
+- Check the [GitHub Issues](https://github.com/mordy0202/ai-hedge-fund/issues)
+- Follow updates on [GitHub](https://github.com/mordy0202) 

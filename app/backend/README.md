@@ -1,5 +1,5 @@
 # AI Hedge Fund - Backend [WIP] 🚧
-This project is currently a work in progress.  To track progress, please get updates [here](https://x.com/virattt).
+This project is currently a work in progress.  To track progress, please get updates [here](https://github.com/mordy0202).
 
 This is the backend server for the AI Hedge Fund project. It provides a simple REST API to interact with the AI Hedge Fund system, allowing you to run the hedge fund through a web interface.
 
@@ -15,7 +15,7 @@ This backend is designed to work with a future frontend application that will al
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/virattt/ai-hedge-fund.git
+git clone https://github.com/mordy0202/ai-hedge-fund.git
 cd ai-hedge-fund
 ```
 
